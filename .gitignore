@@ -4,3 +4,9 @@
 *.aux
 *.tgz
 cpdt/src/*.html
+lf/*.html
+plf/*html
+vfa/*.html
+lf/common/
+plf/common/
+vfa/common/
