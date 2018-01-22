@@ -1,4 +1,5 @@
-*/*.glob
-*/*.vo
-*/*.v.d
+*.glob
+*.vo
+*.v.d
+*.aux
 cpdt/src/*.html
