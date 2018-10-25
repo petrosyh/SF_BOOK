@@ -1,3 +1,4 @@
+
 (** val negb : bool -> bool **)
 
 let negb = function
@@ -14,8 +15,7 @@ let rec app l m =
 module Coq__1 = struct
  (** val add : int -> int -> int **)let rec add = ( + )
 end
-let add = Coq__1.add
-
+include Coq__1
 
 (** val mul : int -> int -> int **)
 
@@ -26,15 +26,12 @@ let rec mul = ( * )
 let rec sub n0 m =
   (fun zero succ n ->
       if n=0 then zero () else succ (n-1))
-    (fun _ ->
-    n0)
+    (fun _ -> n0)
     (fun k ->
     (fun zero succ n ->
       if n=0 then zero () else succ (n-1))
-      (fun _ ->
-      n0)
-      (fun l ->
-      sub k l)
+      (fun _ -> n0)
+      (fun l -> sub k l)
       m)
     n0
 
@@ -49,15 +46,12 @@ module Nat =
   let rec leb n0 m =
     (fun zero succ n ->
       if n=0 then zero () else succ (n-1))
-      (fun _ ->
-      true)
+      (fun _ -> true)
       (fun n' ->
       (fun zero succ n ->
       if n=0 then zero () else succ (n-1))
-        (fun _ ->
-        false)
-        (fun m' ->
-        leb n' m')
+        (fun _ -> false)
+        (fun m' -> leb n' m')
         m)
       n0
  end
@@ -94,11 +88,10 @@ module Pos =
        | XI q -> XI (add p q)
        | XO q -> XO (add p q)
        | XH -> XI p)
-    | XH ->
-      (match y with
-       | XI q -> XO (succ q)
-       | XO q -> XI q
-       | XH -> XO XH)
+    | XH -> (match y with
+             | XI q -> XO (succ q)
+             | XO q -> XI q
+             | XH -> XO XH)
 
   (** val add_carry : positive -> positive -> positive **)
 
@@ -149,20 +142,18 @@ module N =
   let add n0 m =
     match n0 with
     | N0 -> m
-    | Npos p ->
-      (match m with
-       | N0 -> n0
-       | Npos q -> Npos (Pos.add p q))
+    | Npos p -> (match m with
+                 | N0 -> n0
+                 | Npos q -> Npos (Pos.add p q))
 
   (** val mul : n -> n -> n **)
 
   let mul n0 m =
     match n0 with
     | N0 -> N0
-    | Npos p ->
-      (match m with
-       | N0 -> N0
-       | Npos q -> Npos (Pos.mul p q))
+    | Npos p -> (match m with
+                 | N0 -> N0
+                 | Npos q -> Npos (Pos.mul p q))
 
   (** val to_nat : n -> int **)
 
@@ -229,16 +220,15 @@ let nat_of_ascii a =
 
 (** val string_dec : char list -> char list -> bool **)
 
-let rec string_dec s s0 =
+let rec string_dec s x =
   match s with
-  | [] ->
-    (match s0 with
-     | [] -> true
-     | _::_ -> false)
-  | a::s1 ->
-    (match s0 with
+  | [] -> (match x with
+           | [] -> true
+           | _::_ -> false)
+  | a::s0 ->
+    (match x with
      | [] -> false
-     | a0::s2 -> if (=) a a0 then string_dec s1 s2 else false)
+     | a0::s1 -> if (=) a a0 then string_dec s0 s1 else false)
 
 (** val append : char list -> char list -> char list **)
 
@@ -247,37 +237,28 @@ let rec append s1 s2 =
   | [] -> s2
   | c::s1' -> c::(append s1' s2)
 
-type id =
-  char list
-  (* singleton inductive, whose constructor was Id *)
+(** val beq_string : char list -> char list -> bool **)
 
-(** val beq_id : id -> id -> bool **)
-
-let beq_id x y =
+let beq_string x y =
   if string_dec x y then true else false
 
-type 'a total_map = id -> 'a
+type 'a total_map = char list -> 'a
 
 (** val t_empty : 'a1 -> 'a1 total_map **)
 
 let t_empty v _ =
   v
 
-(** val t_update : 'a1 total_map -> id -> 'a1 -> id -> 'a1 **)
+(** val t_update : 'a1 total_map -> char list -> 'a1 -> char list -> 'a1 **)
 
 let t_update m x v x' =
-  if beq_id x x' then v else m x'
+  if beq_string x x' then v else m x'
 
 type state = int total_map
 
-(** val empty_state : state **)
-
-let empty_state =
-  t_empty 0
-
 type aexp =
 | ANum of int
-| AId of id
+| AId of char list
 | APlus of aexp * aexp
 | AMinus of aexp * aexp
 | AMult of aexp * aexp
@@ -311,7 +292,7 @@ let rec beval st = function
 
 type com =
 | CSkip
-| CAss of id * aexp
+| CAss of char list * aexp
 | CSeq of com * com
 | CIf of bexp * com * com
 | CWhile of bexp * com
@@ -321,8 +302,7 @@ type com =
 let rec ceval_step st c i =
   (fun zero succ n ->
       if n=0 then zero () else succ (n-1))
-    (fun _ ->
-    None)
+    (fun _ -> None)
     (fun i' ->
     match c with
     | CSkip -> Some st
@@ -357,8 +337,7 @@ let isWhite c =
         ((fun x -> x + 1) ((fun x -> x + 1) ((fun x -> x + 1)
         ((fun x -> x + 1) ((fun x -> x + 1) ((fun x -> x + 1)
         ((fun x -> x + 1) ((fun x -> x + 1) ((fun x -> x + 1)
-        ((fun x -> x + 1) ((fun x -> x + 1)
-        0)))))))))))))))))))))))))))))))))
+        ((fun x -> x + 1) ((fun x -> x + 1) 0)))))))))))))))))))))))))))))))))
       (Nat.eqb n0 ((fun x -> x + 1) ((fun x -> x + 1) ((fun x -> x + 1)
         ((fun x -> x + 1) ((fun x -> x + 1) ((fun x -> x + 1)
         ((fun x -> x + 1) ((fun x -> x + 1) ((fun x -> x + 1) 0)))))))))))
@@ -466,8 +445,7 @@ let isAlpha c =
         ((fun x -> x + 1) ((fun x -> x + 1) ((fun x -> x + 1)
         ((fun x -> x + 1) ((fun x -> x + 1) ((fun x -> x + 1)
         ((fun x -> x + 1) ((fun x -> x + 1)
-        0)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
-        n0)
+        0))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))) n0)
       (Nat.leb n0 ((fun x -> x + 1) ((fun x -> x + 1) ((fun x -> x + 1)
         ((fun x -> x + 1) ((fun x -> x + 1) ((fun x -> x + 1)
         ((fun x -> x + 1) ((fun x -> x + 1) ((fun x -> x + 1)
@@ -643,11 +621,9 @@ type token = char list
     chartype -> char list -> char list -> char list list **)
 
 let rec tokenize_helper cls acc xs =
-  let tk =
-    match acc with
-    | [] -> []
-    | _ :: _ -> (rev acc) :: []
-  in
+  let tk = match acc with
+           | [] -> []
+           | _ :: _ -> (rev acc) :: [] in
   (match xs with
    | [] -> tk
    | x :: xs' ->
@@ -1504,7 +1480,7 @@ let firstExpect t p = function
 let expect t =
   firstExpect t (fun xs -> SomeE ((), xs))
 
-(** val parseIdentifier : token list -> (id * token list) optionE **)
+(** val parseIdentifier : token list -> (char list * token list) optionE **)
 
 let parseIdentifier = function
 | [] ->
@@ -1533,8 +1509,8 @@ let parseNumber = function
                 ((fun x -> x + 1) ((fun x -> x + 1) ((fun x -> x + 1)
                 ((fun x -> x + 1) ((fun x -> x + 1) ((fun x -> x + 1)
                 ((fun x -> x + 1) 0)))))))))) n0)
-              (sub (nat_of_ascii d) (nat_of_ascii '0'))) (list_of_string x)
-            0), xs')
+              (sub (nat_of_ascii d) (nat_of_ascii '0'))) (list_of_string x) 0),
+         xs')
   else NoneE
          ('E'::('x'::('p'::('e'::('c'::('t'::('e'::('d'::(' '::('n'::('u'::('m'::('b'::('e'::('r'::[])))))))))))))))
 
@@ -1572,8 +1548,7 @@ and parseProductExp steps xs =
     match parsePrimaryExp steps' xs with
     | SomeE p ->
       let (e, rest) = p in
-      (match many (firstExpect ('*'::[]) (parsePrimaryExp steps')) steps'
-               rest with
+      (match many (firstExpect ('*'::[]) (parsePrimaryExp steps')) steps' rest with
        | SomeE p0 ->
          let (es, rest') = p0 in
          SomeE ((fold_left (fun x x0 -> AMult (x, x0)) es e), rest')
@@ -1594,8 +1569,7 @@ and parseSumExp steps xs =
       let (e, rest) = p in
       (match many (fun xs0 ->
                match firstExpect ('+'::[]) (parseProductExp steps') xs0 with
-               | SomeE p0 ->
-                 let (e0, rest') = p0 in SomeE ((true, e0), rest')
+               | SomeE p0 -> let (e0, rest') = p0 in SomeE ((true, e0), rest')
                | NoneE _ ->
                  (match firstExpect ('-'::[]) (parseProductExp steps') xs0 with
                   | SomeE p0 ->
@@ -1630,8 +1604,7 @@ let rec parseAtomicExp steps xs =
       (match expect ('f'::('a'::('l'::('s'::('e'::[]))))) xs with
        | SomeE p -> let (_, rest) = p in SomeE (BFalse, rest)
        | NoneE _ ->
-         (match firstExpect ('n'::('o'::('t'::[]))) (parseAtomicExp steps')
-                  xs with
+         (match firstExpect ('!'::[]) (parseAtomicExp steps') xs with
           | SomeE p -> let (e, rest) = p in SomeE ((BNot e), rest)
           | NoneE _ ->
             (match firstExpect ('('::[]) (parseConjunctionExp steps') xs with
@@ -1644,7 +1617,7 @@ let rec parseAtomicExp steps xs =
                (match parseProductExp steps' xs with
                 | SomeE p ->
                   let (e, rest) = p in
-                  (match firstExpect ('='::('='::[])) (parseAExp steps') rest with
+                  (match firstExpect ('='::[]) (parseAExp steps') rest with
                    | SomeE p0 ->
                      let (e', rest') = p0 in SomeE ((BEq (e, e')), rest')
                    | NoneE _ ->
@@ -1654,7 +1627,7 @@ let rec parseAtomicExp steps xs =
                         let (e', rest') = p0 in SomeE ((BLe (e, e')), rest')
                       | NoneE _ ->
                         NoneE
-                          ('E'::('x'::('p'::('e'::('c'::('t'::('e'::('d'::(' '::('\''::('='::('='::('\''::(' '::('o'::('r'::(' '::('\''::('<'::('='::('\''::(' '::('a'::('f'::('t'::('e'::('r'::(' '::('a'::('r'::('i'::('t'::('h'::('m'::('e'::('t'::('i'::('c'::(' '::('e'::('x'::('p'::('r'::('e'::('s'::('s'::('i'::('o'::('n'::[])))))))))))))))))))))))))))))))))))))))))))))))))))
+                          ('E'::('x'::('p'::('e'::('c'::('t'::('e'::('d'::(' '::('\''::('='::('\''::(' '::('o'::('r'::(' '::('\''::('<'::('='::('\''::(' '::('a'::('f'::('t'::('e'::('r'::(' '::('a'::('r'::('i'::('t'::('h'::('m'::('e'::('t'::('i'::('c'::(' '::('e'::('x'::('p'::('r'::('e'::('s'::('s'::('i'::('o'::('n'::[]))))))))))))))))))))))))))))))))))))))))))))))))))
                 | NoneE err -> NoneE err)))))
     steps
 
@@ -1696,7 +1669,7 @@ let rec parseSimpleCommand steps xs =
     match expect ('S'::('K'::('I'::('P'::[])))) xs with
     | SomeE p -> let (_, rest) = p in SomeE (CSkip, rest)
     | NoneE _ ->
-      (match firstExpect ('I'::('F'::[])) (parseBExp steps') xs with
+      (match firstExpect ('I'::('F'::('B'::[]))) (parseBExp steps') xs with
        | SomeE p ->
          let (e, rest) = p in
          (match firstExpect ('T'::('H'::('E'::('N'::[]))))
@@ -2015,3 +1988,8 @@ let bignumber =
 
 let parse str =
   let tokens = tokenize str in parseSequencedCommand bignumber tokens
+
+(** val empty_state : int total_map **)
+
+let empty_state =
+  t_empty 0

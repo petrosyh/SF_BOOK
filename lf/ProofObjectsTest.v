@@ -1,6 +1,6 @@
 Set Warnings "-notation-overridden,-parsing".
 From Coq Require Export String.
-From LF Require Import Maps.
+From LF Require Import ProofObjects.
 Parameter MISSING: Type. 
 
 Module Check. 
@@ -26,40 +26,47 @@ end.
 
 End Check.
 
-From LF Require Import Maps.
+From LF Require Import ProofObjects.
 Import Check.
 
 Goal True.
 
-idtac "-------------------  t_update_same  --------------------".
+idtac "-------------------  eight_is_even  --------------------".
 idtac " ".
 
-idtac "#> t_update_same".
+idtac "#> ev_8".
+idtac "Possible points: 1".
+check_type @ev_8 ((ev 8)).
+idtac "Assumptions:".
+Abort.
+Print Assumptions ev_8.
+Goal True.
+idtac " ".
+
+idtac "#> ev_8'".
+idtac "Possible points: 1".
+check_type @ev_8' ((ev 8)).
+idtac "Assumptions:".
+Abort.
+Print Assumptions ev_8'.
+Goal True.
+idtac " ".
+
+idtac "-------------------  equality__leibniz_equality  --------------------".
+idtac " ".
+
+idtac "#> equality__leibniz_equality".
 idtac "Possible points: 2".
-check_type @t_update_same (
-(forall (X : Type) (x : string) (m : total_map X), m & {x --> m x} = m)).
+check_type @equality__leibniz_equality (
+(forall (X : Type) (x y : X), x = y -> forall P : X -> Prop, P x -> P y)).
 idtac "Assumptions:".
 Abort.
-Print Assumptions t_update_same.
-Goal True.
-idtac " ".
-
-idtac "-------------------  t_update_permute  --------------------".
-idtac " ".
-
-idtac "#> t_update_permute".
-idtac "Possible points: 3".
-check_type @t_update_permute (
-(forall (X : Type) (v1 v2 : X) (x1 x2 : string) (m : total_map X),
- x2 <> x1 -> m & {x2 --> v2; x1 --> v1} = m & {x1 --> v1; x2 --> v2})).
-idtac "Assumptions:".
-Abort.
-Print Assumptions t_update_permute.
+Print Assumptions equality__leibniz_equality.
 Goal True.
 idtac " ".
 
 idtac " ".
 
-idtac "Max points - standard: 5".
-idtac "Max points - advanced: 5".
+idtac "Max points - standard: 4".
+idtac "Max points - advanced: 4".
 Abort.

@@ -3,12 +3,12 @@
 (** Before getting started, we need to import all of our
     definitions from the previous chapter: *)
 
-Require Export Basics.
+From LF Require Export Basics.
 
 (** For the [Require Export] to work, you first need to use
     [coqc] to compile [Basics.v] into [Basics.vo].  This is like
-    making a .class file from a .java file, or a .o file from a .c
-    file.  There are two ways to do it:
+    making a [.class] file from a [.java] file, or a [.o] file from a
+    [.c] file.  There are two ways to do it:
 
      - In CoqIDE:
 
@@ -20,16 +20,37 @@ Require Export Basics.
          [make Basics.vo]
 
        (assuming you've downloaded the whole LF directory and have a
-       working 'make' command) or
+       working [make] command) or
 
          [coqc Basics.v]
 
-       (which should work from any terminal window).
+       (which should work regardless).
 
-   If you have trouble (e.g., if you get complaints about missing
-   identifiers later in the file), it may be because the "load path"
-   for Coq is not set up correctly.  The [Print LoadPath.] command may
-   be helpful in sorting out such issues. *)
+    If you have trouble (e.g., if you get complaints about missing
+    identifiers later in the file), it may be because the "load path"
+    for Coq is not set up correctly.  The [Print LoadPath.] command may
+    be helpful in sorting out such issues.
+
+    In particular, if you see a message like
+
+        [Compiled library Foo makes inconsistent assumptions over
+        library Coq.Init.Bar]
+
+    you should check whether you have multiple installations of Coq on
+    your machine.  If so, it may be that commands (like [coqc]) that
+    you execute in a terminal window are getting a different version of
+    Coq than commands executed by Proof General or CoqIDE.
+
+    One more tip for CoqIDE users: If you see messages like [Error:
+    Unable to locate library Basics], a likely reason is
+    inconsistencies between compiling things _within CoqIDE_ vs _using
+    coqc_ from the command line.  This typically happens when there are
+    two incompatible versions of [coqc] installed on your system (one
+    associated with CoqIDE, and one associated with [coqc] from the
+    terminal).  The workaround for this situation is compiling using
+    CoqIDE only (i.e. choosing "make" from the menu), and avoiding
+    using [coqc] directly at all. *)
+
 (* ################################################################# *)
 (** * Proof by Induction *)
 
@@ -192,6 +213,9 @@ Proof.
 
 (* FILL IN HERE *)
 *)
+
+(* Do not modify the following line: *)
+Definition manual_grade_for_destruct_induction : option (prod nat string) := None.
 (** [] *)
 
 (* ################################################################# *)
@@ -391,6 +415,9 @@ Proof.
 
     Proof: (* FILL IN HERE *)
 *)
+
+(* Do not modify the following line: *)
+Definition manual_grade_for_plus_comm_informal : option (prod nat string) := None.
 (** [] *)
 
 (** **** Exercise: 2 stars, optional (beq_nat_refl_informal)  *)
@@ -401,7 +428,8 @@ Proof.
     Theorem: [true = beq_nat n n] for any [n].
 
     Proof: (* FILL IN HERE *)
-[] *)
+*)
+(** [] *)
 
 (* ################################################################# *)
 (** * More Exercises *)
@@ -541,6 +569,9 @@ Proof.
     do so! *)
 
 (* FILL IN HERE *)
+
+(* Do not modify the following line: *)
+Definition manual_grade_for_binary_commute : option (prod nat string) := None.
 (** [] *)
 
 (** **** Exercise: 5 stars, advanced (binary_inverse)  *)
@@ -570,7 +601,9 @@ Proof.
     here. *)
 
 (* FILL IN HERE *)
+
+(* Do not modify the following line: *)
+Definition manual_grade_for_binary_inverse : option (prod nat string) := None.
 (** [] *)
 
 
-(** $Date: 2017-09-06 10:45:52 -0400 (Wed, 06 Sep 2017) $ *)

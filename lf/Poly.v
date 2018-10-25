@@ -5,9 +5,10 @@
 
 (* Suppress some annoying warnings from Coq: *)
 Set Warnings "-notation-overridden,-parsing".
-Require Export Lists.
+From LF Require Export Lists.
 
-(*** Polymorphism *)
+(* ################################################################# *)
+(** * Polymorphism *)
 
 (** In this chapter we continue our development of basic
     concepts of functional programming.  The critical new ideas are
@@ -87,7 +88,7 @@ Check (cons nat 3 (nil nat)).
 Check nil.
 (* ===> nil : forall X : Type, list X *)
 
-(** Similarly, the type of [cons] as read off from the definition is
+(** Similarly, the type of [cons] from the definition looks like
     [X -> list X -> list X], but using this convention to explain the
     meaning of [X] results in the type [forall X, X -> list X -> list
     X]. *)
@@ -105,7 +106,7 @@ Check cons.
 
 (** Having to supply a type argument for each use of a list
     constructor may seem an awkward burden, but we will soon see
-    ways of reducing that burden. *) 
+    ways of reducing that burden. *)
 
 Check (cons nat 2 (cons nat 1 (nil nat))).
 
@@ -138,10 +139,11 @@ Example test_repeat2 :
 Proof. reflexivity.  Qed.
 
 
-Module MumbleGrumble.
 
 (** **** Exercise: 2 stars (mumble_grumble)  *)
 (** Consider the following two inductively defined types. *)
+
+Module MumbleGrumble.
 
 Inductive mumble : Type :=
   | a : mumble
@@ -160,12 +162,13 @@ Inductive grumble (X:Type) : Type :=
       - [e bool true]
       - [e mumble (b c 0)]
       - [e bool (b c 0)]
-      - [c]
+      - [c]  *)
 (* FILL IN HERE *)
-*)
-(** [] *)
-
 End MumbleGrumble.
+
+(* Do not modify the following line: *)
+Definition manual_grade_for_mumble_grumble : option (prod nat string) := None.
+(** [] *)
 
 (* ----------------------------------------------------------------- *)
 (** *** Type Annotation Inference *)
@@ -187,7 +190,7 @@ Check repeat'.
 Check repeat.
 (* ===> forall X : Type, X -> nat -> list X *)
 
-(** It has exactly the same type type as [repeat].  Coq was able
+(** It has exactly the same type as [repeat].  Coq was able
     to use _type inference_ to deduce what the types of [X], [x], and
     [count] must be, based on how they are used.  For example, since
     [X] is used as an argument to [cons], it must be a [Type], since
@@ -489,7 +492,7 @@ Fixpoint combine {X Y : Type} (lx : list X) (ly : list Y)
 
 (** **** Exercise: 1 star, optional (combine_checks)  *)
 (** Try answering the following questions on paper and
-    checking your answers in coq:
+    checking your answers in Coq:
     - What is the type of [combine] (i.e., what does [Check
       @combine] print?)
     - What does
@@ -521,7 +524,12 @@ Proof.
 (** ** Polymorphic Options *)
 
 (** One last polymorphic type for now: _polymorphic options_,
-    which generalize [natoption] from the previous chapter: *)
+    which generalize [natoption] from the previous chapter.  (We put
+    the definition inside a module because the standard library
+    already defines [option] and it's this one that we want to use
+    below.) *)
+
+Module OptionPlayground.
 
 Inductive option (X:Type) : Type :=
   | Some : X -> option X
@@ -529,6 +537,8 @@ Inductive option (X:Type) : Type :=
 
 Arguments Some {X} _.
 Arguments None {X}.
+
+End OptionPlayground.
 
 (** We can now rewrite the [nth_error] function so that it works
     with any type of lists. *)
@@ -723,7 +733,7 @@ Example test_partition2: partition (fun x => false) [5;9;0] = ([], [5;9;0]).
 
 (** Another handy higher-order function is called [map]. *)
 
-Fixpoint map {X Y:Type} (f:X->Y) (l:list X) : (list Y) :=
+Fixpoint map {X Y: Type} (f:X->Y) (l:list X) : (list Y) :=
   match l with
   | []     => []
   | h :: t => (f h) :: (map f t)
@@ -778,7 +788,7 @@ Proof.
       = [1; 2; 3; 5; 6; 7; 10; 11; 12].
 *)
 
-Fixpoint flat_map {X Y:Type} (f:X -> list Y) (l:list X)
+Fixpoint flat_map {X Y: Type} (f: X -> list Y) (l: list X)
                    : (list Y)
   (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
 
@@ -806,7 +816,7 @@ Definition option_map {X Y : Type} (f : X -> Y) (xo : option X)
     type parameters where necessary and use Coq to check that you've
     done so correctly.  (This exercise is not to be turned in; it is
     probably easiest to do it on a _copy_ of this file that you can
-    throw away afterwards.) 
+    throw away afterwards.)
 *)
 (** [] *)
 
@@ -818,7 +828,7 @@ Definition option_map {X Y : Type} (f : X -> Y) (xo : option X)
     operation that lies at the heart of Google's map/reduce
     distributed programming framework. *)
 
-Fixpoint fold {X Y:Type} (f: X->Y->Y) (l:list X) (b:Y)
+Fixpoint fold {X Y: Type} (f: X->Y->Y) (l: list X) (b: Y)
                          : Y :=
   match l with
   | nil => b
@@ -863,6 +873,9 @@ Proof. reflexivity. Qed.
     different? *)
 
 (* FILL IN HERE *)
+
+(* Do not modify the following line: *)
+Definition manual_grade_for_fold_types_different : option (prod nat string) := None.
 (** [] *)
 
 (* ================================================================= *)
@@ -920,7 +933,7 @@ Module Exercises.
 
 (** **** Exercise: 2 stars (fold_length)  *)
 (** Many common functions on lists can be implemented in terms of
-   [fold].  For example, here is an alternative definition of [length]: *)
+    [fold].  For example, here is an alternative definition of [length]: *)
 
 Definition fold_length {X : Type} (l : list X) : nat :=
   fold (fun _ n => S n) l 0.
@@ -932,6 +945,7 @@ Proof. reflexivity. Qed.
 
 Theorem fold_length_correct : forall X (l : list X),
   fold_length l = length l.
+Proof.
 (* FILL IN HERE *) Admitted.
 (** [] *)
 
@@ -939,13 +953,16 @@ Theorem fold_length_correct : forall X (l : list X),
 (** We can also define [map] in terms of [fold].  Finish [fold_map]
     below. *)
 
-Definition fold_map {X Y:Type} (f : X -> Y) (l : list X) : list Y
+Definition fold_map {X Y: Type} (f: X -> Y) (l: list X) : list Y
   (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
 
 (** Write down a theorem [fold_map_correct] in Coq stating that
    [fold_map] is correct, and prove it. *)
 
 (* FILL IN HERE *)
+
+(* Do not modify the following line: *)
+Definition manual_grade_for_fold_map : option (prod nat string) := None.
 (** [] *)
 
 (** **** Exercise: 2 stars, advanced (currying)  *)
@@ -1012,9 +1029,11 @@ Proof.
    Write an informal proof of the following theorem:
 
    forall X n l, length l = n -> @nth_error X l n = None
-
-(* FILL IN HERE *)
 *)
+(* FILL IN HERE *)
+
+(* Do not modify the following line: *)
+Definition manual_grade_for_informal_proof : option (prod nat string) := None.
 (** [] *)
 
 (** **** Exercise: 4 stars, advanced (church_numerals)  *)
@@ -1119,9 +1138,11 @@ Example exp_3 : exp three zero = one.
 Proof. (* FILL IN HERE *) Admitted.
 
 End Church.
+
+(* Do not modify the following line: *)
+Definition manual_grade_for_succ_plus_mult_exp : option (prod nat string) := None.
 (** [] *)
 
 End Exercises.
 
-(** $Date: 2017-09-06 11:44:36 -0400 (Wed, 06 Sep 2017) $ *)
 

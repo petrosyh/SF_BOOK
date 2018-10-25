@@ -1,6 +1,6 @@
 (** * Lists: Working with Structured Data *)
 
-Require Export Induction.
+From LF Require Export Induction.
 Module NatList.
 
 (* ################################################################# *)
@@ -19,7 +19,7 @@ Inductive natprod : Type :=
 
 Check (pair 3 5).
 
-(** Here are two simple functions for extracting the first and
+(** Here are simple functions for extracting the first and
     second components of a pair.  The definitions also illustrate how
     to do pattern matching on two-argument constructors. *)
 
@@ -68,9 +68,8 @@ Definition swap_pair (p : natprod) : natprod :=
 
 (** Let's try to prove a few simple facts about pairs.
 
-    If we state things in a particular (and slightly peculiar) way, we
-    can complete proofs with just reflexivity (and its built-in
-    simplification): *)
+    If we state things in a slightly peculiar way, we can complete
+    proofs with just reflexivity (and its built-in simplification): *)
 
 Theorem surjective_pairing' : forall (n m : nat),
   (n,m) = (fst (n,m), snd (n,m)).
@@ -157,21 +156,21 @@ Definition mylist3 := [1;2;3].
   Notation "x + y" := (plus x y)
                       (at level 50, left associativity).
 
-   the [+] operator will bind tighter than [::], so [1 + 2 :: [3]]
-   will be parsed, as we'd expect, as [(1 + 2) :: [3]] rather than [1
-   + (2 :: [3])].
+    the [+] operator will bind tighter than [::], so [1 + 2 :: [3]]
+    will be parsed, as we'd expect, as [(1 + 2) :: [3]] rather than [1
+    + (2 :: [3])].
 
-   (Expressions like "[1 + 2 :: [3]]" can be a little confusing when
-   you read them in a .v file.  The inner brackets, around 3, indicate
-   a list, but the outer brackets, which are invisible in the HTML
-   rendering, are there to instruct the "coqdoc" tool that the bracketed
-   part should be displayed as Coq code rather than running text.)
+    (Expressions like "[1 + 2 :: [3]]" can be a little confusing when
+    you read them in a [.v] file.  The inner brackets, around 3, indicate
+    a list, but the outer brackets, which are invisible in the HTML
+    rendering, are there to instruct the "coqdoc" tool that the bracketed
+    part should be displayed as Coq code rather than running text.)
 
-   The second and third [Notation] declarations above introduce the
-   standard square-bracket notation for lists; the right-hand side of
-   the third one illustrates Coq's syntax for declaring n-ary
-   notations and translating them to nested sequences of binary
-   constructors. *)
+    The second and third [Notation] declarations above introduce the
+    standard square-bracket notation for lists; the right-hand side of
+    the third one illustrates Coq's syntax for declaring n-ary
+    notations and translating them to nested sequences of binary
+    constructors. *)
 
 (* ----------------------------------------------------------------- *)
 (** *** Repeat *)
@@ -379,13 +378,13 @@ Example test_member1:             member 1 [1;4;1] = true.
  (* FILL IN HERE *) Admitted.
 
 Example test_member2:             member 2 [1;4;1] = false.
- (* FILL IN HERE *) Admitted.
+(* FILL IN HERE *) Admitted.
 (** [] *)
 
 (** **** Exercise: 3 stars, optional (bag_more_functions)  *)
-(** Here are some more bag functions for you to practice with. *)
+(** Here are some more [bag] functions for you to practice with. *)
 
-(** When remove_one is applied to a bag without the number to remove,
+(** When [remove_one] is applied to a bag without the number to remove,
    it should return the same bag unchanged. *)
 
 Fixpoint remove_one (v:nat) (s:bag) : bag
@@ -426,6 +425,9 @@ Example test_subset1:              subset [1;2] [2;1;4;1] = true.
  (* FILL IN HERE *) Admitted.
 Example test_subset2:              subset [1;2;2] [2;1;4;1] = false.
  (* FILL IN HERE *) Admitted.
+
+(* Do not modify the following line: *)
+Definition manual_grade_for_bag_theorem : option (prod nat string) := None.
 (** [] *)
 
 (** **** Exercise: 3 stars, recommended (bag_theorem)  *)
@@ -457,7 +459,7 @@ Theorem nil_app : forall l:natlist,
   [] ++ l = l.
 Proof. reflexivity. Qed.
 
-(** ... because the [[]] is substituted into the
+(** ...because the [[]] is substituted into the
     "scrutinee" (the expression whose value is being "scrutinized" by
     the match) in the definition of [app], allowing the match itself
     to be simplified. *)
@@ -620,7 +622,7 @@ Proof.
 Abort.
 
 (** So let's take the equation relating [++] and [length] that
-    would have enabled us to make progress and prove it as a separate
+    would have enabled us to make progress and state it as a separate
     lemma. *)
 
 Theorem app_length : forall l1 l2 : natlist,
@@ -821,16 +823,17 @@ Proof.
 (* ================================================================= *)
 (** ** List Exercises, Part 2 *)
 
-(** **** Exercise: 3 stars, advanced (bag_proofs)  *)
 (** Here are a couple of little theorems to prove about your
     definitions about bags above. *)
 
+(** **** Exercise: 1 star (count_member_nonzero)  *)
 Theorem count_member_nonzero : forall (s : bag),
   leb 1 (count 1 (1 :: s)) = true.
 Proof.
   (* FILL IN HERE *) Admitted.
+(** [] *)
 
-(** The following lemma about [leb] might help you in the next proof. *)
+(** The following lemma about [leb] might help you in the next exercise. *)
 
 Theorem ble_n_Sn : forall n,
   leb n (S n) = true.
@@ -841,7 +844,8 @@ Proof.
   - (* S n' *)
     simpl.  rewrite IHn'.  reflexivity.  Qed.
 
-Theorem remove_decreases_count: forall (s : bag),
+(** **** Exercise: 3 stars, advanced (remove_does_not_increase_count)  *)
+Theorem remove_does_not_increase_count: forall (s : bag),
   leb (count 0 (remove_one 0 s)) (count 0 s) = true.
 Proof.
   (* FILL IN HERE *) Admitted.
@@ -849,9 +853,9 @@ Proof.
 
 (** **** Exercise: 3 stars, optional (bag_count_sum)  *)
 (** Write down an interesting theorem [bag_count_sum] about bags
-    involving the functions [count] and [sum], and prove it.  (You may
-    find that the difficulty of the proof depends on how you defined
-    [count]!) *)
+    involving the functions [count] and [sum], and prove it using
+    Coq.  (You may find that the difficulty of the proof depends on
+    how you defined [count]!) *)
 (* FILL IN HERE *)
 (** [] *)
 
@@ -860,9 +864,12 @@ Proof.
 
     forall (l1 l2 : natlist), rev l1 = rev l2 -> l1 = l2.
 
-(There is a hard way and an easy way to do this.) *)
+    (There is a hard way and an easy way to do this.) *)
 
 (* FILL IN HERE *)
+
+(* Do not modify the following line: *)
+Definition manual_grade_for_rev_injective : option (prod nat string) := None.
 (** [] *)
 
 (* ################################################################# *)
@@ -1022,8 +1029,8 @@ Inductive partial_map : Type :=
     [partial_map] with an additional key-to-value mapping." *)
 
 (** The [update] function overrides the entry for a given key in a
-    partial map (or adds a new entry if the given key is not already
-    present). *)
+    partial map by shadowing it with a new one (or simply adds a new
+    entry if the given key is not already present). *)
 
 Definition update (d : partial_map)
                   (x : id) (value : nat)
@@ -1069,12 +1076,13 @@ Inductive baz : Type :=
   | Baz1 : baz -> baz
   | Baz2 : baz -> bool -> baz.
 
-(** How _many_ elements does the type [baz] have?  (Answer in English
-    or the natural language of your choice.)
+(** How _many_ elements does the type [baz] have?
+    (Explain your answer in words, preferrably English.) *)
 
 (* FILL IN HERE *)
-*)
+
+(* Do not modify the following line: *)
+Definition manual_grade_for_baz_num_elts : option (prod nat string) := None.
 (** [] *)
 
-(** $Date: 2017-09-06 10:45:52 -0400 (Wed, 06 Sep 2017) $ *)
 

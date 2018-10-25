@@ -1,3 +1,4 @@
+
 val negb : bool -> bool
 
 val app : 'a1 list -> 'a1 list -> 'a1 list
@@ -68,25 +69,19 @@ val string_dec : char list -> char list -> bool
 
 val append : char list -> char list -> char list
 
-type id =
-  char list
-  (* singleton inductive, whose constructor was Id *)
+val beq_string : char list -> char list -> bool
 
-val beq_id : id -> id -> bool
-
-type 'a total_map = id -> 'a
+type 'a total_map = char list -> 'a
 
 val t_empty : 'a1 -> 'a1 total_map
 
-val t_update : 'a1 total_map -> id -> 'a1 -> id -> 'a1
+val t_update : 'a1 total_map -> char list -> 'a1 -> char list -> 'a1
 
 type state = int total_map
 
-val empty_state : state
-
 type aexp =
 | ANum of int
-| AId of id
+| AId of char list
 | APlus of aexp * aexp
 | AMinus of aexp * aexp
 | AMult of aexp * aexp
@@ -105,7 +100,7 @@ val beval : state -> bexp -> bool
 
 type com =
 | CSkip
-| CAss of id * aexp
+| CAss of char list * aexp
 | CSeq of com * com
 | CIf of bexp * com * com
 | CWhile of bexp * com
@@ -154,7 +149,7 @@ val firstExpect : token -> 'a1 parser0 -> 'a1 parser0
 
 val expect : token -> unit parser0
 
-val parseIdentifier : token list -> (id * token list) optionE
+val parseIdentifier : token list -> (char list * token list) optionE
 
 val parseNumber : token list -> (int * token list) optionE
 
@@ -179,3 +174,5 @@ val parseSequencedCommand : int -> token list -> (com * token list) optionE
 val bignumber : int
 
 val parse : char list -> (com * token list) optionE
+
+val empty_state : int total_map

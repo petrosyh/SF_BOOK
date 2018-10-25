@@ -1,6 +1,6 @@
 Set Warnings "-notation-overridden,-parsing".
 From Coq Require Export String.
-From LF Require Import Preface.
+From LF Require Import ImpParser.
 Parameter MISSING: Type. 
 
 Module Check. 
@@ -26,7 +26,7 @@ end.
 
 End Check.
 
-From LF Require Import Preface.
+From LF Require Import ImpParser.
 Import Check.
 
 Goal True.

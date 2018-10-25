@@ -83,7 +83,7 @@
     Effectiveness of Logic in Computer Science_ catalogs scores of
     ways in which logic offers critical tools and insights.  Indeed,
     they observe that, "As a matter of fact, logic has turned out to
-    be significiantly more effective in computer science than it has
+    be significantly more effective in computer science than it has
     been in mathematics.  This is quite remarkable, especially since
     much of the impetus for the development of logic during the past
     one hundred years came from mathematics."
@@ -264,10 +264,10 @@
 (* ================================================================= *)
 (** ** System Requirements *)
 
-(** Coq runs on Windows, Linux, and OS X.  You will need:
+(** Coq runs on Windows, Linux, and macOS.  You will need:
 
        - A current installation of Coq, available from the Coq home
-         page.  These files have been tested with Coq 8.6.
+         page.  These files have been tested with Coq 8.8.0.
 
        - An IDE for interacting with Coq.  Currently, there are two
          choices:
@@ -326,7 +326,7 @@
 
 (** A tar file containing the full sources for the "release version"
     of this book (as a collection of Coq scripts and HTML files) is
-    available at http://www.cis.upenn.edu/~bcpierce/sf.
+    available at http://softwarefoundations.cis.upenn.edu.
 
     (If you are using the book as part of a class, your professor may
     give you access to a locally modified version of the files, which
@@ -348,12 +348,12 @@
     undoubtedly find things you'd like to change, improve, or add.
     Your contributions are welcome!
 
-    In order to keep the legalities simple and to have a single
-    point of responsibility in case the need should ever arise to
-    adjust the license terms, sublicense, etc., we ask all
-    contributors (i.e., everyone with access to the developers'
-    repository) to assign copyright in their contributions to the
-    appropriate "author of record," as follows:
+    In order to keep the legalities simple and to have a single point
+    of responsibility in case the need should ever arise to adjust the
+    license terms, sublicense, etc., we ask all contributors (i.e.,
+    everyone with access to the developers' repository) to assign
+    copyright in their contributions to the appropriate "author of
+    record," as follows:
 
       - I hereby assign copyright in my past and future contributions
         to the Software Foundations project to the Author of Record of
@@ -362,29 +362,30 @@
         present, the Authors of Record are as follows: For Volumes 1
         and 2, known until 2016 as "Software Foundations" and from
         2016 as (respectively) "Logical Foundations" and "Programming
-        Foundations," the Author of Record is Benjamin Pierce.  For
-        Volume 3, "Verified Functional Algorithms", the Author of
+        Foundations," and for Volume 4, "QuickChick: Property-Based
+        Testing in Coq," the Author of Record is Benjamin C. Pierce.
+        For Volume 3, "Verified Functional Algorithms", the Author of
         Record is Andrew W. Appel. For components outside of
-        designated Volumes (e.g., typesetting and grading tools and
+        designated volumes (e.g., typesetting and grading tools and
         other software infrastructure), the Author of Record is
         Benjamin Pierce.
 
-    To get started, please send an email to Benjamin Pierce, describing
-    yourself and how you plan to use the materials and including 
-       (1) the above copyright transfer text and 
-       (2) the result of doing "htpasswd -s -n NAME"
-    where NAME is your preferred user name. 
+    To get started, please send an email to Benjamin Pierce,
+    describing yourself and how you plan to use the materials and
+    including (1) the above copyright transfer text and (2) your
+    github username.
 
-    We'll set you up with access to the subversion repository and 
-    developers' mailing lists.  In the repository you'll find a 
-    file [INSTRUCTORS] with further instructions. *)
+    We'll set you up with access to the git repository and developers'
+    mailing lists.  In the repository you'll find a file [INSTRUCTORS]
+    with further instructions. *)
 
 (* ################################################################# *)
 (** * Translations *)
 
 (** Thanks to the efforts of a team of volunteer translators,
     _Software Foundations_ can be enjoyed in Japanese at
-    http://proofcafe.org/sf.  A Chinese translation is underway. *)
+    http://proofcafe.org/sf.  A Chinese translation is also underway;
+    you can preview it at https://coq-zh.github.io/SF-zh/. *)
 
 (* ################################################################# *)
 (** * Thanks *)
@@ -394,4 +395,3 @@
     NSF Expeditions grant 1521523, _The Science of Deep
     Specification_. *)
 
-(** $Date: 2017-08-24 17:13:02 -0400 (Thu, 24 Aug 2017) $ *)

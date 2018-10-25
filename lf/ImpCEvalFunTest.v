@@ -1,6 +1,6 @@
 Set Warnings "-notation-overridden,-parsing".
 From Coq Require Export String.
-From LF Require Import Maps.
+From LF Require Import ImpCEvalFun.
 Parameter MISSING: Type. 
 
 Module Check. 
@@ -26,40 +26,48 @@ end.
 
 End Check.
 
-From LF Require Import Maps.
+From LF Require Import ImpCEvalFun.
 Import Check.
 
 Goal True.
 
-idtac "-------------------  t_update_same  --------------------".
+idtac "-------------------  pup_to_n  --------------------".
 idtac " ".
 
-idtac "#> t_update_same".
+idtac "#> pup_to_n".
 idtac "Possible points: 2".
-check_type @t_update_same (
-(forall (X : Type) (x : string) (m : total_map X), m & {x --> m x} = m)).
+check_type @pup_to_n (Imp.com).
 idtac "Assumptions:".
 Abort.
-Print Assumptions t_update_same.
+Print Assumptions pup_to_n.
 Goal True.
 idtac " ".
 
-idtac "-------------------  t_update_permute  --------------------".
+idtac "-------------------  ceval_step__ceval_inf  --------------------".
 idtac " ".
 
-idtac "#> t_update_permute".
+idtac "#> Manually graded: ceval_step__ceval_inf".
+idtac "Possible points: 4".
+print_manual_grade manual_grade_for_ceval_step__ceval_inf.
+idtac " ".
+
+idtac "-------------------  ceval__ceval_step  --------------------".
+idtac " ".
+
+idtac "#> ceval__ceval_step".
 idtac "Possible points: 3".
-check_type @t_update_permute (
-(forall (X : Type) (v1 v2 : X) (x1 x2 : string) (m : total_map X),
- x2 <> x1 -> m & {x2 --> v2; x1 --> v1} = m & {x1 --> v1; x2 --> v2})).
+check_type @ceval__ceval_step (
+(forall (c : Imp.com) (st st' : Imp.state),
+ Imp.ceval c st st' ->
+ exists i : nat, ceval_step st c i = @Some Imp.state st')).
 idtac "Assumptions:".
 Abort.
-Print Assumptions t_update_permute.
+Print Assumptions ceval__ceval_step.
 Goal True.
 idtac " ".
 
 idtac " ".
 
-idtac "Max points - standard: 5".
-idtac "Max points - advanced: 5".
+idtac "Max points - standard: 9".
+idtac "Max points - advanced: 9".
 Abort.

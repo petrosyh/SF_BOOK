@@ -1,35 +1,38 @@
 Set Warnings "-notation-overridden,-parsing".
-Require Import Auto.
-Parameter MISSING: Type.
+From Coq Require Export String.
+From LF Require Import Auto.
+Parameter MISSING: Type. 
 
-Module Check.
+Module Check. 
 
-Ltac check_type A B :=
-match type of A with
-| context[MISSING] => idtac "Missing:" A
-| ?T => first [unify T B; idtac "Type: ok" | idtac "Type: wrong - should be " B]
-end.
+Ltac check_type A B := 
+match type of A with 
+| context[MISSING] => idtac "Missing:" A  
+| ?T => first [unify T B; idtac "Type: ok" | idtac "Type: wrong - should be (" B ")"] 
+end. 
 
-Ltac check_exists A :=
-match type of A with
-| context[MISSING] => idtac "Missing:" A
-| ?T => idtac "Is present."; idtac "Check type:" T
-end.
+Ltac print_manual_grade A := 
+match eval compute in A with 
+| Some (pair ?S ?C) => 
+idtac "Score:"  S; 
+match eval compute in C with  
+| ""%string => idtac "Comment: None"  
+| _ => idtac "Comment:" C 
+end 
+| None => 
+idtac "Score: Ungraded"; 
+idtac "Comment: None" 
+end. 
+
 End Check.
 
-Require Import Auto.
+From LF Require Import Auto.
 Import Check.
 
-Require Import Coq.omega.Omega.
-Import Auto.
-Require Import Maps.
-Import Auto.
-Require Import Imp.
-Import Auto.
-Module TestRepeat.
-Import Repeat.
-End TestRepeat.
 Goal True.
-idtac "Max points - regular: 0".
+
+idtac " ".
+
+idtac "Max points - standard: 0".
 idtac "Max points - advanced: 0".
 Abort.

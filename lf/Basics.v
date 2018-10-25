@@ -118,9 +118,9 @@ Compute (next_weekday (next_weekday saturday)).
     Coq interpreter under your favorite IDE -- either CoqIde or Proof
     General -- and try this for yourself.  Load this file, [Basics.v],
     from the book's Coq sources, find the above example, submit it to
-    Coq, and observe the result.)
+    Coq, and observe the result.) *)
 
-    Second, we can record what we _expect_ the result to be in the
+(** Second, we can record what we _expect_ the result to be in the
     form of a Coq example: *)
 
 Example test_next_weekday:
@@ -159,16 +159,20 @@ Proof. simpl. reflexivity.  Qed.
     In order for these scripts to work correctly (so that you get full
     credit for your work!), please be careful to follow these rules:
       - The grading scripts work by extracting marked regions of the
-        .v files that you submit.  It is therefore important that you
-        do not alter the "markup" that delimits exercises: the
+        [.v] files that you submit.  It is therefore important that
+        you do not alter the "markup" that delimits exercises: the
         Exercise header, the name of the exercise, the "empty square
         bracket" marker at the end, etc.  Please leave this markup
         exactly as you find it.
       - Do not delete exercises.  If you skip an exercise (e.g.,
         because it is marked Optional, or because you can't solve it),
-        it is OK to leave a partial proof in your .v file, but in this
-        case please make sure it ends with [Admitted] (not, for
-        example [Abort]). *)
+        it is OK to leave a partial proof in your [.v] file, but in
+        this case please make sure it ends with [Admitted] (not, for
+        example [Abort]).
+      - It is fine to use additional definitions (of helper functions,
+        useful lemmas, etc.) in your solutions.  You can put these
+        between the exercise header and the theorem you are asked to
+        prove. *)
 
 (* ================================================================= *)
 (** ** Booleans *)
@@ -226,7 +230,7 @@ Example test_orb4:  (orb true  true)  = true.
 Proof. simpl. reflexivity.  Qed.
 
 (** We can also introduce some familiar syntax for the boolean
-    operations we have just defined. The [Infix] command defines a new
+    operations we have just defined. The [Notation] command defines a new
     symbolic notation for an existing definition. *)
 
 Notation "x && y" := (andb x y).
@@ -238,7 +242,7 @@ Proof. simpl. reflexivity. Qed.
 (** _A note on notation_: In [.v] files, we use square brackets
     to delimit fragments of Coq code within comments; this convention,
     also used by the [coqdoc] documentation tool, keeps them visually
-    separate from the surrounding text.  In the html version of the
+    separate from the surrounding text.  In the HTML version of the
     files, these pieces of text appear in a [different font].
 
     The command [Admitted] can be used as a placeholder for an
@@ -249,10 +253,9 @@ Proof. simpl. reflexivity. Qed.
 (** **** Exercise: 1 star (nandb)  *)
 (** Remove "[Admitted.]" and complete the definition of the following
     function; then make sure that the [Example] assertions below can
-    each be verified by Coq.  (Remove "[Admitted.]" and fill in each
-    proof, following the model of the [orb] tests above.) The function
-    should return [true] if either or both of its inputs are
-    [false]. *)
+    each be verified by Coq.  (I.e., fill in each proof, following the
+    model of the [orb] tests above.) The function should return [true]
+    if either or both of its inputs are [false]. *)
 
 Definition nandb (b1:bool) (b2:bool) : bool
   (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
@@ -335,10 +338,11 @@ Inductive color : Type :=
     Every inductively defined type ([day], [bool], [rgb], [color],
     etc.) contains a set of _constructor expressions_ built from
     _constructors_ like [red], [primary], [true], [false], [monday],
-    etc.  The definitions of [rgb] and [color] say how expressions in
-    the sets [rgb] and [color] can be built:
+    etc. *)
+(** The definitions of [rgb] and [color] say how expressions in the
+    sets [rgb] and [color] can be built:
 
-    - [reg], [green], and [blue] are the constructors of [rgb];
+    - [red], [green], and [blue] are the constructors of [rgb];
     - [black], [white], and [primary] are the constructors of [color];
     - the expression [red] belongs to the set [rgb], as do the
       expressions [green] and [blue];
@@ -397,7 +401,7 @@ Module NatPlayground.
 (** ** Numbers *)
 
 (** An even more interesting way of defining a type is to allow its
-    constrctors to take arguments from the very same type -- that is,
+    constructors to take arguments from the very same type -- that is,
     to allow the rules describing its elements to be _inductive_.
 
     For example, we can define (a unary representation of) natural
@@ -484,7 +488,7 @@ Definition minustwo (n : nat) : nat :=
 Compute (minustwo 4).
   (* ===> 2 : nat *)
 
-(** The constructor [S] has the type [nat -> nat], just like 
+(** The constructor [S] has the type [nat -> nat], just like
     [pred] and functions like [minustwo]: *)
 
 Check S.
@@ -579,13 +583,13 @@ Proof. simpl. reflexivity.  Qed.
     between them: *)
 
 Fixpoint minus (n m:nat) : nat :=
-  match (n, m) with
-  | (O   , _)    => O
-  | (S _ , O)    => n
-  | (S n', S m') => minus n' m'
+  match n, m with
+  | O   , _    => O
+  | S _ , O    => n
+  | S n', S m' => minus n' m'
   end.
 
-(** Again, the _ in the first line is a _wildcard pattern_.  Writing
+(** Again, the [_] in the first line is a _wildcard pattern_.  Writing
     [_] in a pattern is the same as writing some variable that doesn't
     get used on the right-hand side.  This avoids the need to invent a
     variable name. *)
@@ -634,8 +638,8 @@ Check ((0 + 1) + 1).
 (** (The [level], [associativity], and [nat_scope] annotations
     control how these notations are treated by Coq's parser.  The
     details are not important for our purposes, but interested readers
-    can refer to the optional "More on Notation" section at the end of
-    this chapter.)
+    can refer to the "More on Notation" section at the end of this
+    chapter.)
 
     Note that these do not change the definitions we've already made:
     they are simply instructions to the Coq parser to accept [x + y]
@@ -643,11 +647,12 @@ Check ((0 + 1) + 1).
     to display [plus x y] as [x + y]. *)
 
 (** When we say that Coq comes with almost nothing built-in, we really
-    mean it: even equality testing for numbers is a user-defined
-    operation!  We now define a function [beq_nat], which tests
-    [nat]ural numbers for [eq]uality, yielding a [b]oolean.  Note the
-    use of nested [match]es (we could also have used a simultaneous
-    match, as we did in [minus].) *)
+    mean it: even equality testing is a user-defined operation!
+
+    Here is a function [beq_nat], which tests [nat]ural numbers for
+    [eq]uality, yielding a [b]oolean.  Note the use of nested
+    [match]es (we could also have used a simultaneous match, as we did
+    in [minus].) *)
 
 Fixpoint beq_nat (n m : nat) : bool :=
   match n with
@@ -879,8 +884,8 @@ Theorem mult_S_1 : forall n m : nat,
 Proof.
   (* FILL IN HERE *) Admitted.
 
-  (* (N.b. This proof can actually be completed without using [rewrite],
-     but please do use [rewrite] for the sake of the exercise.) *)
+  (* (N.b. This proof can actually be completed with tactics other than
+     [rewrite], but please do use [rewrite] for the sake of the exercise.) *)
 (** [] *)
 
 (* ################################################################# *)
@@ -1054,8 +1059,8 @@ Proof.
       - reflexivity. }
 Qed.
 
-(** Before closing the chapter, let's mention one final convenience.  
-    As you may have noticed, many proofs perform case analysis on a variable 
+(** Before closing the chapter, let's mention one final convenience.
+    As you may have noticed, many proofs perform case analysis on a variable
     right after introducing it:
 
        intros x y. destruct y as [|y].
@@ -1185,6 +1190,11 @@ Fixpoint plus' (n : nat) (m : nat) : nat :=
 (* ################################################################# *)
 (** * More Exercises *)
 
+(** Each SF chapter comes with a tester file (e.g.  [BasicsTest.v]),
+    containing scripts that check most of the exercises. You can run
+    [make BasicsTest.vo] in a terminal and check its output to make
+    sure you didn't miss anything. *)
+
 (** **** Exercise: 2 stars (boolean_functions)  *)
 (** Use the tactics you have learned so far to prove the following
     theorem about boolean functions. *)
@@ -1201,6 +1211,14 @@ Proof.
     function [f] has the property that [f x = negb x].*)
 
 (* FILL IN HERE *)
+(* The [Import] statement on the next line tells Coq to use the
+   standard library String module.  We'll use strings more in later
+   chapters, but for the moment we just need syntax for literal
+   strings for the grader comments. *)
+From Coq Require Export String.
+
+(* Do not modify the following line: *)
+Definition manual_grade_for_negation_fn_applied_twice : option (prod nat string) := None.
 (** [] *)
 
 (** **** Exercise: 3 stars, optional (andb_eq_orb)  *)
@@ -1231,18 +1249,24 @@ Proof.
     (a) First, write an inductive definition of the type [bin]
         corresponding to this description of binary numbers.
 
-    (Hint: Recall that the definition of [nat] above,
+        (Hint: Recall that the definition of [nat] above,
 
-         Inductive nat : Type := | O : nat | S : nat -> nat.
+         Inductive nat : Type :=
+           | O : nat
+           | S : nat -> nat.
 
-    says nothing about what [O] and [S] "mean."  It just says "[O] is
-    in the set called [nat], and if [n] is in the set then so is [S
-    n]."  The interpretation of [O] as zero and [S] as successor/plus
-    one comes from the way that we _use_ [nat] values, by writing
-    functions to do things with them, proving things about them, and
-    so on.  Your definition of [bin] should be correspondingly simple;
-    it is the functions you will write next that will give it
-    mathematical meaning.)
+        says nothing about what [O] and [S] "mean."  It just says "[O]
+        is in the set called [nat], and if [n] is in the set then so
+        is [S n]."  The interpretation of [O] as zero and [S] as
+        successor/plus one comes from the way that we _use_ [nat]
+        values, by writing functions to do things with them, proving
+        things about them, and so on.  Your definition of [bin] should
+        be correspondingly simple; it is the functions you will write
+        next that will give it mathematical meaning.)
+
+        One caveat: If you use [O] or [S] as constructor names in your
+        definition, it will confuse the auto-grader script.  Please choose 
+        different names.
 
     (b) Next, write an increment function [incr] for binary numbers,
         and a function [bin_to_nat] to convert binary numbers to unary
@@ -1257,7 +1281,8 @@ Proof.
         first converting it to unary and then incrementing. *)
 
 (* FILL IN HERE *)
-(** [] *)
 
-(** $Date: 2017-09-05 11:51:58 -0400 (Tue, 05 Sep 2017) $ *)
+(* Do not modify the following line: *)
+Definition manual_grade_for_binary : option (prod nat string) := None.
+(** [] *)
 
