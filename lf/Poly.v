@@ -719,13 +719,14 @@ Example test_filter_even_gt7_2 :
 Definition partition {X : Type}
                      (test : X -> bool)
                      (l : list X)
-                   : list X * list X
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+                   : list X * list X := ((filter test l), (filter (fun x => negb (test x)) l)).
 
 Example test_partition1: partition oddb [1;2;3;4;5] = ([1;3;5], [2;4]).
-(* FILL IN HERE *) Admitted.
+Proof. auto. Qed.
+
 Example test_partition2: partition (fun x => false) [5;9;0] = ([], [5;9;0]).
-(* FILL IN HERE *) Admitted.
+Proof. auto. Qed.
+
 (** [] *)
 
 (* ================================================================= *)
@@ -770,11 +771,20 @@ Proof. reflexivity.  Qed.
 (** **** Exercise: 3 stars (map_rev)  *)
 (** Show that [map] and [rev] commute.  You may need to define an
     auxiliary lemma. *)
+Lemma map_rev_aux
+      X Y (x:X) l (f:X->Y)
+  :
+    map f (l++[x]) = map f l ++ [f x].
+Proof.
+  induction l; auto.
+  simpl. rewrite IHl. auto. Qed.
 
 Theorem map_rev : forall (X Y : Type) (f : X -> Y) (l : list X),
   map f (rev l) = rev (map f l).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  induction l; auto.
+  simpl. rewrite <- IHl.
+  rewrite map_rev_aux. auto. Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars, recommended (flat_map)  *)
@@ -789,13 +799,17 @@ Proof.
 *)
 
 Fixpoint flat_map {X Y: Type} (f: X -> list Y) (l: list X)
-                   : (list Y)
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+  : (list Y) :=
+  match l with
+  | [] => []
+  | hd :: tl => f hd ++ flat_map f tl
+  end.
 
 Example test_flat_map1:
   flat_map (fun n => [n;n;n]) [1;5;4]
   = [1; 1; 1; 5; 5; 5; 4; 4; 4].
- (* FILL IN HERE *) Admitted.
+Proof. auto. Qed.
+
 (** [] *)
 
 (** Lists are not the only inductive type that we can write a
@@ -946,15 +960,25 @@ Proof. reflexivity. Qed.
 Theorem fold_length_correct : forall X (l : list X),
   fold_length l = length l.
 Proof.
-(* FILL IN HERE *) Admitted.
+  induction l; auto.
+  simpl. unfold fold_length. simpl. rewrite <- IHl. auto. Qed.
 (** [] *)
 
 (** **** Exercise: 3 stars (fold_map)  *)
 (** We can also define [map] in terms of [fold].  Finish [fold_map]
     below. *)
 
-Definition fold_map {X Y: Type} (f: X -> Y) (l: list X) : list Y
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+Definition fold_map {X Y: Type} (f: X -> Y) (l: list X) : list Y :=
+  fold (fun x => (fun y => (f x) :: y)) l [].
+
+Lemma fold_map_correct
+     X Y (f:X->Y) l
+  :
+    fold_map f l = map f l.
+Proof.
+  induction l; auto.
+  unfold fold_map. simpl. rewrite <- IHl. auto.
+Qed.
 
 (** Write down a theorem [fold_map_correct] in Coq stating that
    [fold_map] is correct, and prove it. *)
@@ -988,8 +1012,8 @@ Definition prod_curry {X Y Z : Type}
     the theorems below to show that the two are inverses. *)
 
 Definition prod_uncurry {X Y Z : Type}
-  (f : X -> Y -> Z) (p : X * Y) : Z
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+           (f : X -> Y -> Z) (p : X * Y) : Z :=
+  f (fst p) (snd p).
 
 (** As a (trivial) example of the usefulness of currying, we can use it
     to shorten one of the examples that we saw above: *)
@@ -1008,13 +1032,13 @@ Theorem uncurry_curry : forall (X Y Z : Type)
                         x y,
   prod_curry (prod_uncurry f) x y = f x y.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  auto. Qed.
 
 Theorem curry_uncurry : forall (X Y Z : Type)
                         (f : (X * Y) -> Z) (p : X * Y),
   prod_uncurry (prod_curry f) p = f p.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros. destruct p. auto. Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars, advanced (nth_error_informal)  *)
@@ -1031,7 +1055,23 @@ Proof.
    forall X n l, length l = n -> @nth_error X l n = None
 *)
 (* FILL IN HERE *)
-
+Lemma nth_error_formal
+      X n l
+      (LEN: length l = n)
+  :
+    @nth_error X l n = None.
+Proof.
+  generalize dependent n.
+  induction l; auto.
+  simpl in *.
+  intros.
+  destruct (beq_nat n 0) eqn:H.
+  - destruct n; inversion LEN.
+    inversion H.
+  - destruct n; try inversion H.
+    simpl in *. inversion LEN.
+    eapply IHl in H1. auto. Qed.
+    
 (* Do not modify the following line: *)
 Definition manual_grade_for_informal_proof : option (prod nat string) := None.
 (** [] *)
@@ -1077,65 +1117,67 @@ Definition three : nat := @doit3times.
 
 (** Successor of a natural number: *)
 
-Definition succ (n : nat) : nat
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+Definition succ (n : nat) : nat :=
+  fun (X:Type) (f:X->X) (x:X) => f (n X f x).
 
 Example succ_1 : succ zero = one.
-Proof. (* FILL IN HERE *) Admitted.
+Proof. auto. Qed.
 
 Example succ_2 : succ one = two.
-Proof. (* FILL IN HERE *) Admitted.
+Proof. auto. Qed.
 
 Example succ_3 : succ two = three.
-Proof. (* FILL IN HERE *) Admitted.
+Proof. auto. Qed.
 
 (** Addition of two natural numbers: *)
 
-Definition plus (n m : nat) : nat
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+Definition plus (n m : nat) : nat :=
+  fun (X:Type) (f:X->X) (x:X) => n X f (m X f x).
 
 Example plus_1 : plus zero one = one.
-Proof. (* FILL IN HERE *) Admitted.
+Proof. auto. Qed.
 
 Example plus_2 : plus two three = plus three two.
-Proof. (* FILL IN HERE *) Admitted.
+Proof. auto. Qed.
 
 Example plus_3 :
   plus (plus two two) three = plus one (plus three three).
-Proof. (* FILL IN HERE *) Admitted.
+Proof. auto. Qed.
 
 (** Multiplication: *)
 
-Definition mult (n m : nat) : nat
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+Definition mult (n m : nat) : nat :=
+  fun (X:Type) (f:X->X) (x:X) => m X (n X f) x.
 
 Example mult_1 : mult one one = one.
-Proof. (* FILL IN HERE *) Admitted.
+Proof. auto. Qed.
 
 Example mult_2 : mult zero (plus three three) = zero.
-Proof. (* FILL IN HERE *) Admitted.
+Proof. auto. Qed.
 
 Example mult_3 : mult two three = plus three three.
-Proof. (* FILL IN HERE *) Admitted.
+Proof. auto. Qed.
 
-(** Exponentiation: *)
+(** Exponentiation: m^n *)
 
 (** (_Hint_: Polymorphism plays a crucial role here.  However,
     choosing the right type to iterate over can be tricky.  If you hit
     a "Universe inconsistency" error, try iterating over a different
     type: [nat] itself is usually problematic.) *)
 
-Definition exp (n m : nat) : nat
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+(** each function f mult m. *)
+Check (mult two two).
+Definition exp (n m : nat) : nat :=
+  fun (X:Type) (f:X->X) (x:X) => m (X->X) (n X) f x.
 
 Example exp_1 : exp two two = plus two two.
-Proof. (* FILL IN HERE *) Admitted.
+Proof. auto. Qed.
 
 Example exp_2 : exp three two = plus (mult two (mult two two)) one.
-Proof. (* FILL IN HERE *) Admitted.
+Proof. reflexivity. Qed.
 
 Example exp_3 : exp three zero = one.
-Proof. (* FILL IN HERE *) Admitted.
+Proof. auto. Qed.
 
 End Church.
 
