@@ -1136,6 +1136,7 @@ Definition tr_rev {X} (l : list X) : list X :=
     call); a decent compiler will generate very efficient code in this
     case.  Prove that the two definitions are indeed equivalent. *)
 
+(* one more *)
 Lemma tr_rev_aux
       X (l1 l2:list X)
   :
@@ -1186,6 +1187,7 @@ Proof.
 Qed.
 
 (** **** Exercise: 3 stars (evenb_double_conv)  *)
+(* one more *)
 Theorem evenb_double_conv : forall n,
   exists k, n = if evenb n then double k
                 else S (double k).
@@ -1602,6 +1604,42 @@ Definition de_morgan_not_and_not := forall P Q:Prop,
 Definition implies_to_or := forall P Q:Prop,
   (P->Q) -> (~P\/Q).
 
-(* FILL IN HERE *)
+Lemma e_to_p: (* one more *)
+  excluded_middle -> peirce.
+Proof.
+  intros. unfold excluded_middle, peirce in *. intros.
+  specialize (H P). inversion H; auto.
+  exfalso. apply H1. apply H0. intros. apply H1 in H2. inversion H2.
+Qed.
+
+Lemma p_to_double: (* one more *)
+  peirce -> double_negation_elimination.
+Proof.
+  unfold peirce, double_negation_elimination. intros.
+  specialize (H P False). apply H. intros. apply H0 in H1. 
+  inversion H1.
+Qed.
+
+Lemma double_to_de_morgan:
+  double_negation_elimination -> de_morgan_not_and_not.
+Proof.
+  unfold double_negation_elimination, de_morgan_not_and_not.
+  intros. apply H. unfold not. intros. apply H0.
+  split; unfold not; intros; apply H1; auto.
+Qed.
+
+Lemma de_morgan_to_implies: (* one more *)
+  de_morgan_not_and_not -> implies_to_or.
+Proof.
+  unfold de_morgan_not_and_not, implies_to_or. intros.
+  specialize (H (~P) Q). apply H. unfold not. intros. inversion H1. apply H2. intros. apply H3.
+  apply H0. auto. Qed.
+
+Lemma implies_to_em:
+  implies_to_or -> excluded_middle.
+Proof.
+  unfold implies_to_or, excluded_middle. intros.
+  specialize (H P P). apply or_commut. apply H. auto. Qed.
+
 (** [] *)
 
