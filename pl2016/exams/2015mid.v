@@ -53,8 +53,8 @@ Inductive list (X:Type) : Type :=
 Fixpoint app (X : Type) (l1 l2 : list X)
                 : (list X) :=
   match l1 with
-  | nil      => l2
-  | cons h t => cons X h (app X t l2)
+  | nil _  => l2
+  | cons _ h t => cons X h (app X t l2)
   end.
 
 Arguments nil {X}.
@@ -100,8 +100,8 @@ Lemma forall_not_ex_not: forall (X: Type) (P: X -> Prop)
     (ALL: forall x, P x),
   ~ exists x, ~ P x.
 Proof.
-  admit.
-Qed.
+  intros. unfold not. intros. inversion H.
+  apply H0. auto. Qed.
 
 (*=========== 3141592 ===========*)
 
@@ -113,13 +113,16 @@ Qed.
  **)
 
 Fixpoint square_sum (n: nat) : nat :=
-  (* FILL IN HERE *) admit.
+  match n with
+  | 0 => 0
+  | S n' => n * n + square_sum n'
+  end.
 
 Example square_sum_example1: square_sum 5 = 55.
-Proof. (* FILL IN HERE *) admit. Qed.
+Proof. auto. Qed.
 
 Example square_sum_example2: square_sum 10 = 385.
-Proof. (* FILL IN HERE *) admit. Qed.
+Proof. auto. Qed. 
 
 (*=========== 3141592 ===========*)
 
@@ -133,13 +136,19 @@ Proof. (* FILL IN HERE *) admit. Qed.
  **)
 
 Fixpoint fibonacci (n: nat) : nat :=
-  (* FILL IN HERE *) admit.
+  match n with
+  | 0 => 0
+  | S n' => match n' with
+           | 0 => 1
+           | S n'' => (fibonacci n') + fibonacci n''
+           end
+  end.
 
 Example fibonacci_example1: fibonacci 5 = 5.
-Proof. (* FILL IN HERE *) admit. Qed.
+Proof. auto. Qed.
 
 Example fibonacci_example2: fibonacci 10 = 55.
-Proof. (* FILL IN HERE *) admit. Qed.
+Proof. auto. Qed.
 
 (*=========== 3141592 ===========*)
 
@@ -156,8 +165,14 @@ Fixpoint odd_sum (n: nat) : nat :=
 Theorem odd_sum__square: forall n,
   odd_sum n = n * n.
 Proof.
-  (* FILL IN HERE *) admit.
-Qed.
+  induction n; auto.
+  simpl. SearchAbout "*".
+  rewrite <- plus_n_O. rewrite IHn.
+  assert (S n = 1 + n).
+  { auto. } rewrite H.
+  rewrite mult_plus_distr_l.
+  rewrite mult_1_r.
+  rewrite plus_assoc. auto. Qed.
 
 (*=========== 3141592 ===========*)
 
@@ -169,7 +184,12 @@ Lemma app_tail_cancel: forall X (l1 l2: list X) a
     (EQ: l1 ++ [a] = l2 ++ [a]),
   l1 = l2.
 Proof.
-  (* FILL IN HERE *) admit.
+  induction l1.
+  - intros. induction l2. auto.
+    inversion EQ. induction l2; inversion H1.
+  - intros. induction l2.
+    + inversion EQ. induction l1; inversion H1.
+    + simpl in *. inversion EQ. apply IHl1 in H1. subst. auto.
 Qed.
 
 (*=========== 3141592 ===========*)
@@ -181,7 +201,12 @@ Qed.
 Lemma odd_or_even: forall n,
   exists k, n = 2*k \/ n = 1 + 2*k.
 Proof.
-  (* FILL IN HERE *) admit.
+  induction n; auto.
+  - exists 0. left. auto.
+  - inversion IHn. destruct H.
+    + exists x. right. rewrite H. auto.
+    + exists (1+x). rewrite H. left.
+      simpl. auto.
 Qed.
 
 (*=========== 3141592 ===========*)
@@ -190,12 +215,31 @@ Qed.
     Prove the following theorem.
  **)
 
+Lemma aux1
+      n
+  :
+    exists k, (n = 3 * k \/ n = 1 + 3 * k \/ n = 2 + 3 * k).
+Proof.
+  induction n.
+  - exists 0. left. auto.
+  - inversion IHn.
+    inversion H.
+    + rewrite H0. exists x. right. left. simpl. auto.
+    + inversion H0.
+      * rewrite H1. exists x. right. right. simpl. auto.
+      * rewrite H1.
+        exists (1+x). left. rewrite mult_plus_distr_l. simpl. auto.
+Qed.
+
 Lemma two_three_rel_prime: forall n m
     (EQ: 2 * n = 3 * m),
   exists k, m = 2 * k.
 Proof.
-  (* FILL IN HERE *) admit.
-Qed.
+  intros.
+  destruct (aux1 n).
+  admit.
+Admitted.
+
 
 (*=========== 3141592 [30] ===========*)
 
