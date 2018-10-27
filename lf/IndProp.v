@@ -130,7 +130,12 @@ Qed.
 Theorem ev_double : forall n,
   ev (double n).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros. rewrite double_plus. induction n; simpl.
+  - constructor.
+  - rewrite <- plus_n_Sm.
+    constructor. auto.
+Qed.
+
 (** [] *)
 
 (* ################################################################# *)
@@ -274,7 +279,8 @@ Proof.
 Theorem SSSSev__even : forall n,
   ev (S (S (S (S n)))) -> ev n.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros. inversion H. inversion H1. auto.
+Qed.
 (** [] *)
 
 (** **** Exercise: 1 star (even5_nonsense)  *)
@@ -283,7 +289,8 @@ Proof.
 Theorem even5_nonsense :
   ev 5 -> 2 + 2 = 9.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros. inversion H. inversion H1. inversion H3. Qed.
+
 (** [] *)
 
 (** The way we've used [inversion] here may seem a bit
@@ -409,7 +416,10 @@ Qed.
 (** **** Exercise: 2 stars (ev_sum)  *)
 Theorem ev_sum : forall n m, ev n -> ev m -> ev (n + m).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n m H. revert m. induction H.
+  - auto.
+  - intros. simpl. constructor. apply IHev; auto. Qed.
+
 (** [] *)
 
 (** **** Exercise: 4 stars, advanced, optional (ev'_ev)  *)
@@ -428,7 +438,15 @@ Inductive ev' : nat -> Prop :=
 
 Theorem ev'_ev : forall n, ev' n <-> ev n.
 Proof.
- (* FILL IN HERE *) Admitted.
+  intros. split.
+  - intros. induction H; try constructor.
+    constructor. apply ev_sum; auto.
+  - intros. induction H.
+    constructor.
+    assert (S (S n) = 2 + n) by auto.
+    rewrite H0. repeat (try constructor).
+    auto. Qed.
+
 (** [] *)
 
 (** **** Exercise: 3 stars, advanced, recommended (ev_ev__ev)  *)
@@ -438,7 +456,9 @@ Proof.
 Theorem ev_ev__ev : forall n m,
   ev (n+m) -> ev n -> ev m.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros. induction H0; auto.
+  apply IHev. simpl in H. inversion H. auto. Qed.
+
 (** [] *)
 
 (** **** Exercise: 3 stars, optional (ev_plus_plus)  *)
@@ -449,7 +469,23 @@ Proof.
 Theorem ev_plus_plus : forall n m p,
   ev (n+m) -> ev (n+p) -> ev (m+p).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros.
+  assert (ev((n+p)+(n+m))).
+  { apply ev_sum; auto. }
+  assert (n + p + (n + m) = n + n + m + p).
+  { SearchAbout "+".
+    rewrite plus_assoc. rewrite <- plus_assoc with (n:=n) (m:=p) (p:=n).
+    rewrite plus_comm with (n:=p) (m:=n).
+    rewrite <- plus_assoc. rewrite <- plus_assoc.
+    rewrite plus_comm with (n:=p) (m:=m).
+    rewrite plus_assoc. rewrite plus_assoc. auto. }
+  assert (n + n + m + p = double n + (m + p)).
+  { rewrite <- plus_assoc. rewrite <- double_plus. auto. }
+  rewrite H2 in H1. rewrite H3 in H1.
+  apply ev_ev__ev with (n:=double n); auto.
+  apply ev_double.
+Qed.
+
 (** [] *)
 
 (* ################################################################# *)
@@ -554,45 +590,81 @@ Inductive next_even : nat -> nat -> Prop :=
 
 Lemma le_trans : forall m n o, m <= n -> n <= o -> m <= o.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros. revert H. revert m. induction H0; auto.
+Qed.
 
 Theorem O_le_n : forall n,
   0 <= n.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  induction n.
+  - constructor.
+  - constructor; auto.
+Qed.
 
 Theorem n_le_m__Sn_le_Sm : forall n m,
   n <= m -> S n <= S m.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros. induction H.
+  - auto.
+  - constructor. auto.
+Qed.
 
 Theorem Sn_le_Sm__n_le_m : forall n m,
   S n <= S m -> n <= m.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  (* Inductive le (n : nat) : nat -> Prop :=  le_n : n <= n | le_S : forall m : nat, n <= m -> n <= S m *)
+  intros. inversion H.
+  - constructor.
+  - apply le_trans with (n:= S n); auto.
+Qed. (* one more *)
 
 Theorem le_plus_l : forall a b,
   a <= a + b.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  induction b.
+  - auto.
+    rewrite <- plus_n_O. constructor.
+  - apply le_trans with (n:=a+b); auto.
+    rewrite <- plus_n_Sm. constructor. constructor.
+Qed.
 
 Theorem plus_lt : forall n1 n2 m,
   n1 + n2 < m ->
   n1 < m /\ n2 < m.
 Proof.
- unfold lt.
- (* FILL IN HERE *) Admitted.
+  unfold lt.
+  intros. inversion H.
+  - split; apply n_le_m__Sn_le_Sm. apply le_plus_l.
+    rewrite plus_comm. apply le_plus_l.
+  - split; apply n_le_m__Sn_le_Sm.
+    rewrite plus_comm in H0.
+    rewrite plus_n_Sm in H0.
+    apply le_trans with (n:= S n1).
+    constructor. constructor.
+    rewrite plus_comm in H0.
+    apply le_trans with (n:= S n1 + n2). apply le_plus_l. auto.
+    rewrite plus_n_Sm in H0. apply le_trans with (n:= n1 + S n2).
+    rewrite <- plus_n_Sm. constructor. rewrite plus_comm. apply le_plus_l.
+    auto.
+Qed.
 
 Theorem lt_S : forall n m,
   n < m ->
   n < S m.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  unfold lt.
+  intros. constructor. auto. Qed.
 
 Theorem leb_complete : forall n m,
   leb n m = true -> n <= m.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  induction n.
+  - intros. apply O_le_n.
+  - intros. simpl. induction m.
+    + inversion H.
+    + simpl in *. apply IHn in H.
+      apply n_le_m__Sn_le_Sm. auto.
+Qed.
 
 (** Hint: The next one may be easiest to prove by induction on [m]. *)
 
@@ -600,21 +672,40 @@ Theorem leb_correct : forall n m,
   n <= m ->
   leb n m = true.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros. revert H. revert n. induction m.
+  - intros. inversion H. auto.
+  - intros.
+    induction n.
+    + auto.
+    + simpl. apply IHm.
+      clear -H. inversion H.
+      * auto.
+      * apply le_trans with (n:=S n).
+        { constructor. auto. }
+        { auto. }
+Qed.
 
 (** Hint: This theorem can easily be proved without using [induction]. *)
 
 Theorem leb_true_trans : forall n m o,
   leb n m = true -> leb m o = true -> leb n o = true.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros. apply leb_complete in H. apply leb_complete in H0.
+  apply leb_correct.
+  apply le_trans with (n:=m); auto.
+Qed.
+
 (** [] *)
 
 (** **** Exercise: 2 stars, optional (leb_iff)  *)
 Theorem leb_iff : forall n m,
   leb n m = true <-> n <= m.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros. split.
+  apply leb_complete.
+  apply leb_correct.
+Qed.
+
 (** [] *)
 
 Module R.
@@ -646,7 +737,12 @@ Inductive R : nat -> nat -> nat -> Prop :=
 (* FILL IN HERE *)
 *)
 
+Lemma R_1:
+  R 1 1 2.
+Proof. apply c2. apply c3. constructor. Qed.
+
 (* Do not modify the following line: *)
+
 Definition manual_grade_for_R_provability : option (prod nat string) := None.
 (** [] *)
 
@@ -655,11 +751,14 @@ Definition manual_grade_for_R_provability : option (prod nat string) := None.
     Figure out which function; then state and prove this equivalence
     in Coq? *)
 
-Definition fR : nat -> nat -> nat
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+Definition fR : nat -> nat -> nat :=
+  fun x y => x + y.
 
 Theorem R_equiv_fR : forall m n o, R m n o <-> fR m n = o.
 Proof.
+  intros.
+  split; intros.
+  -
 (* FILL IN HERE *) Admitted.
 (** [] *)
 
