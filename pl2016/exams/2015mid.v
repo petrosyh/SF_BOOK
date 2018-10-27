@@ -215,20 +215,42 @@ Qed.
     Prove the following theorem.
  **)
 
-Lemma aux1
+Lemma aux0
       n
   :
-    exists k, (n = 3 * k \/ n = 1 + 3 * k \/ n = 2 + 3 * k).
+    n + n = 2 * n.
+Proof.
+  induction n; auto.
+  simpl. rewrite plus_0_r. auto. Qed.
+Lemma aux1
+      n m
+      (CONT: 2 * n = 1 + 2 * m)
+  :
+    False.
+Proof.
+  revert CONT. revert m.
+  induction n.
+  - intros. inversion CONT.
+  - intros. induction m.
+    + inversion CONT. rewrite <- plus_n_Sm in H0. inversion H0.
+    + simpl in CONT. rewrite <- plus_n_Sm in CONT. inversion CONT.
+      rewrite <- plus_n_Sm in H0. repeat rewrite plus_0_r in H0.
+      repeat rewrite aux0 in H0. apply IHn in H0. inversion H0.
+Qed.
+  
+Lemma aux2
+      n
+  :
+    exists k, (n = 2*k \/ n = 1 + 2*k).
 Proof.
   induction n.
   - exists 0. left. auto.
   - inversion IHn.
     inversion H.
-    + rewrite H0. exists x. right. left. simpl. auto.
-    + inversion H0.
-      * rewrite H1. exists x. right. right. simpl. auto.
-      * rewrite H1.
-        exists (1+x). left. rewrite mult_plus_distr_l. simpl. auto.
+    + exists x. right.
+      rewrite H0. auto.
+    + rewrite H0. exists (1+x). left. simpl.
+      rewrite <- plus_n_Sm. auto.
 Qed.
 
 Lemma two_three_rel_prime: forall n m
@@ -236,8 +258,11 @@ Lemma two_three_rel_prime: forall n m
   exists k, m = 2 * k.
 Proof.
   intros.
-  destruct (aux1 n).
-  admit.
+  destruct (aux2 m). inversion H. exists x. auto.
+  
+  induction n.
+  - intros. inversion EQ. exists 0. admit.
+  - intros. rewrite H0 in EQ. admit.
 Admitted.
 
 
@@ -250,18 +275,26 @@ Admitted.
  **)
 
 Inductive sorted_min: nat -> list nat -> Prop :=
-  (* FILL IN HERE *)
-.
+| nil_sort
+    n
+  :
+    sorted_min n []
+| more_sort
+    n tl hd
+    (COND1: sorted_min hd tl)
+    (COND2: n <= hd)
+  :
+    sorted_min n (hd::tl).
+
 
 Example sorted_min_example1: sorted_min 0 [1; 3; 4; 4; 5].
-Proof. (* FILL IN HERE *) admit. Qed.
-
+Proof. repeat constructor. Qed.
 
 Example sorted_min_example2: sorted_min 2 [2; 2; 3; 6].
-Proof. (* FILL IN HERE *) admit. Qed.
+Proof. repeat constructor. Qed.
 
 Example sorted_min_non_example1: sorted_min 1 [0; 1] -> False.
-Proof. (* FILL IN HERE *) admit. Qed.
+Proof. intros. inversion H. subst. inversion COND2. Qed.
 
 
 
@@ -280,6 +313,11 @@ Lemma sorted_not_in: forall n m l
     (LT: n < m),
   ~ appears_in n l.
 Proof.
+  intros. induction SORTED.
+  - unfold not. intros. inversion H.
+  - unfold not. intros. inversion H; subst.
+    + admit.
+    +
   (* FILL IN HERE *) admit.
 Qed.
 
