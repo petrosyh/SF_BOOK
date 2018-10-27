@@ -207,8 +207,8 @@ Theorem negation_fn_applied_twice :
   (forall (x : bool), f x = negb x) ->
   forall (b : bool), f (f b) = b.
 Proof.
-  exact FILL_IN_HERE.
-Qed.
+  intros. repeat rewrite H.
+  destruct b; auto. Qed.
 
 (*-- Check --*)
 
@@ -227,8 +227,9 @@ Check negation_fn_applied_twice :
 **)
 
 Lemma double_plus : forall n, double n = n + n .
-Proof.  
-  exact FILL_IN_HERE.
+Proof.
+  induction n; auto.
+  simpl. rewrite <- plus_n_Sm. rewrite IHn. auto.
 Qed.
 
 (*-- Check --*)
@@ -243,7 +244,12 @@ Check double_plus : forall n, double n = n + n .
 Theorem nth_error_after_last: forall (n : nat) (X : Type) (l : list X),
      length l = n ->
      nth_error l n = None.
-Proof. exact FILL_IN_HERE. Qed.
+Proof.
+  induction n.
+  - intros. induction l; auto. inversion H.
+  - intros. induction l; inversion H.
+    apply IHn in H1. simpl. inversion H. rewrite H2. auto.
+Qed.
 
 (*-- Check --*)
 
@@ -263,31 +269,30 @@ Check nth_error_after_last: forall (n : nat) (X : Type) (l : list X),
 (** Successor of a natural number: *)
 
 Definition c_succ (n : c_nat) : c_nat :=
-  FILL_IN_HERE.
-
+  fun (X:Type) (f:X->X) (x:X) => n X f (f x).
 (** Addition of two natural numbers: *)
 
 Definition c_plus (n m : c_nat) : c_nat :=
-  FILL_IN_HERE.
+  fun (X:Type) (f:X->X) (x:X) => n X f (m X f x).
 
 Example c_succ_1 : c_succ c_zero = c_one.
-Proof. exact FILL_IN_HERE. Qed.
+Proof. auto. Qed.
 
 Example c_succ_2 : c_succ c_one = c_two.
-Proof. exact FILL_IN_HERE. Qed.
+Proof. auto. Qed.
 
 Example c_succ_3 : c_succ c_two = c_three.
-Proof. exact FILL_IN_HERE. Qed.
+Proof. auto. Qed.
 
 Example c_plus_1 : c_plus c_zero c_one = c_one.
-Proof. exact FILL_IN_HERE. Qed.
+Proof. auto. Qed.
 
 Example c_plus_2 : c_plus c_two c_three = c_plus c_three c_two.
-Proof. exact FILL_IN_HERE. Qed.
+Proof. auto. Qed.
 
 Example c_plus_3 :
   c_plus (c_plus c_two c_two) c_three = c_plus c_one (c_plus c_three c_three).
-Proof. exact FILL_IN_HERE. Qed.
+Proof. auto. Qed.
 
 (*-- Check --*)
 
@@ -310,11 +315,28 @@ Check c_plus_3 :
     Prove the following theorem.
  **)
 
+Lemma double2:
+  forall n m,
+    double n = double m -> n = m.
+Proof.
+  induction n; intros.
+  - inversion H. destruct m; auto. inversion H1.
+  - induction m.
+    + simpl in H. inversion H.
+    + inversion H. apply IHn in H1. rewrite H1. auto.
+Qed.
+
 Theorem plus_n_n_injective : forall n m,
      n + n = m + m ->
      n = m.
-Proof. exact FILL_IN_HERE. Qed.
-
+Proof.
+  induction n.
+  - simpl; intros. induction m; auto. inversion H.
+  - intros. destruct m. inversion H.
+    simpl in H.
+    repeat rewrite <- plus_n_Sm in H. inversion H. apply IHn in H1. auto.
+Qed.
+  
 (*-- Check --*)
 
 Check plus_n_n_injective : forall n m,
@@ -326,18 +348,21 @@ Check plus_n_n_injective : forall n m,
 (** Easy:
     Define a function [square_sum] satisfying:
 
-      square_sum n = 1^2 + 2^2 + ... +n^2
+      square_sum d = 1^2 + 2^2 + ... +n^2
 
  **)
 
 Fixpoint square_sum (n: nat) : nat :=
-  FILL_IN_HERE.
+  match n with
+  | 0 => 0
+  | S n' => n * n + square_sum n'
+  end.
 
 Example square_sum_example1: square_sum 5 = 55.
-Proof. exact FILL_IN_HERE. Qed.
+Proof. auto. Qed.
 
 Example square_sum_example2: square_sum 10 = 385.
-Proof. exact FILL_IN_HERE. Qed.
+Proof. auto. Qed.
 
 (*-- Check --*)
 
@@ -351,10 +376,31 @@ Check square_sum_example2: square_sum 10 = 385.
     Prove the following theorem.
  **)
 
+Lemma aux:
+  forall X (l: list X)
+  , l = l ++ [].
+Proof.
+  induction l; auto. simpl in *. rewrite <- IHl. auto.
+Qed.
+
+Lemma aux1:
+  forall X (l: list X)
+  , l = [] ++ l.
+Proof.
+  induction l; auto.
+Qed.
+
 Lemma app_tail_cancel: forall X (l1 l2: list X) a
     (EQ: l1 ++ [a] = l2 ++ [a]),
   l1 = l2.
-Proof. exact FILL_IN_HERE. Qed.
+Proof.
+  induction l1.
+  - intros. induction l2. auto. inversion EQ.
+    induction l2; inversion EQ.
+  - intros. simpl in *. destruct l2.
+    + destruct l1; inversion EQ.
+    + simpl in *. inversion EQ. apply IHl1 in H1. subst. auto.
+Qed.
 
 (*-- Check --*)
 
@@ -365,24 +411,34 @@ Check app_tail_cancel: forall X (l1 l2: list X) a
 (*=========== 3141592 ===========*)
 
 Inductive sorted: list nat -> Prop :=
-(* FILL_IN_HERE *)
+| nil_sort
+  :
+    sorted []
+| sort1
+    n
+  :
+    sorted [n]
+| sort2
+    n hd tl
+    (HEAD: n <= hd)
+    (SORTED: sorted (hd::tl))
+  :
+    sorted (n::hd::tl)
 .
 
 Example sorted_example1: sorted [1; 3; 4; 4; 5].
-Proof. exact FILL_IN_HERE. (* repeat (constructor; auto). *) Qed.
+Proof. repeat (constructor; auto). Qed.
 
 Example sorted_example2: sorted [2; 2; 3; 6].
-Proof. exact FILL_IN_HERE. (* repeat (constructor; auto). *) Qed.
+Proof. repeat (constructor; auto). Qed.
 
 Example sorted_non_example1: sorted [1; 3; 2] -> False.
-Proof. exact FILL_IN_HERE.
-  (*
+Proof.  
   intros. 
   repeat match goal with 
    | [H: sorted _ |- _]  => inversion_clear H; subst 
    | [H: _ <= _ |- _] => inversion_clear H; subst 
   end.
-  *)
 Qed.
 
 (*
@@ -411,11 +467,53 @@ Fixpoint sort l :=
   end
 
   Use [Search About leb] 
-*)
+ *)
 
+Lemma aux':
+  forall l x
+    (SORT: sorted l),
+    sorted (insert x l).
+Proof.
+  intros.
+  revert x.
+  induction SORT.
+  - intros. simpl. constructor.
+  - intros. simpl. destruct (x<=? n) eqn:Hx.
+    rewrite Nat.leb_le in Hx.
+    constructor; auto. constructor.
+    SearchAbout leb.
+    rewrite leb_iff_conv in Hx.
+    constructor; auto. unfold lt in Hx.
+    apply le_trans with (m:=S n); auto.
+    constructor.
+  - intros. simpl.
+    destruct (x<=? n) eqn:Hx.
+    + rewrite Nat.leb_le in Hx.
+      constructor; auto. constructor; auto.
+    + specialize (IHSORT x).
+      inversion IHSORT.
+      * constructor.
+      * destruct (x<=?hd) eqn:Hx'.
+        inversion H0. destruct tl; simpl in H0.
+        inversion H0. destruct (x<=?n1). inversion H0.
+        inversion H0.
+      * destruct (x<=?hd) eqn:Hx'.
+        inversion H0. subst.
+        repeat constructor; auto.
+        rewrite leb_iff_conv in Hx.
+        unfold lt in *.
+        apply le_trans with (m:=S n); auto.
+        rewrite H0. simpl in IHSORT. rewrite Hx' in IHSORT.
+        constructor; auto.
+Qed.
+    
 Lemma sort_sorted: forall l, sorted (sort l).
 Proof.
-  exact FILL_IN_HERE.
+  SearchAbout leb.
+  induction l; simpl; try constructor.
+  induction l; simpl; try constructor.
+  intros. simpl in *.
+  apply aux'; auto.
 Qed.
 
 (*-- Check --*)
@@ -467,7 +565,73 @@ Fixpoint fact n :=
 Lemma fact_decompose : forall n k
     (LE: k <= n),
   exists m, fact n = m * fact k * fact (n-k).
-Proof. exact FILL_IN_HERE. Qed.
+Proof.
+  intros. exists (choose n k).
+  revert LE. revert k. revert n.
+  induction n.
+  - intros. simpl. inversion LE. simpl. auto.
+  - intros. destruct k.
+    + simpl. auto.
+    + simpl.
+      apply le_S_n in LE.
+      destruct (k<?n) eqn:Hx; cycle 1.
+      * rewrite Nat.ltb_ge in Hx.
+        assert (k = n).
+        apply Nat.le_antisymm; auto. subst.
+        simpl. rewrite Nat.sub_diag. simpl.
+        rewrite Nat.mul_1_r. auto.
+      * rewrite Nat.ltb_lt in Hx.
+        simpl. unfold lt in Hx.
+        assert (k<=n) by auto.
+        assert (S k<=n) by auto.
+        apply IHn in LE.
+        apply IHn in Hx. simpl in Hx.
+        rewrite <- Nat.mul_assoc.
+        rewrite Nat.mul_add_distr_r.
+        repeat rewrite Nat.mul_assoc.
+        assert (forall n, n>=1 -> fact n = fact (n - 1) * n).
+        { clear. intros. simpl.
+          induction n; auto. inversion H.
+          simpl. rewrite <- minus_n_O.
+          change (S n) with (1+n).
+          rewrite Nat.mul_add_distr_l.
+          rewrite Nat.mul_1_r. rewrite mult_comm. auto. }
+        apply Nat.sub_le_mono_r with (p:=k) in H0.
+        assert (S k - k = 1).
+        { clear. induction k. auto.
+          simpl. destruct k; auto. }
+        rewrite H2 in H0.
+        apply H1 in H0.
+        rewrite H0.
+        rewrite mult_assoc.
+        assert (n - k - 1 = n - S k).
+        { clear. change (S k) with (1+k).
+          rewrite plus_comm. rewrite Nat.sub_add_distr. auto. }
+        rewrite H3.
+        assert (choose n (S k) * (fact k + k * fact k) * fact (n - S k) * (n - k)
+                = (fact n) * (n-k)).
+        { clear -Hx.
+          rewrite Hx. auto. }
+        rewrite H4.
+        rewrite <- H3.
+        rewrite <- H0.
+        rewrite Nat.mul_add_distr_l.
+        rewrite Nat.mul_add_distr_r.
+        rewrite <- LE.
+        assert (choose n k * (k * fact k) * fact (n - k) = (fact n) * k).
+        { clear -LE.
+          rewrite mult_comm with (n:=k) (m:=fact k).
+          rewrite <- mult_assoc.
+          rewrite <- mult_assoc with (n:=fact k).
+          rewrite mult_comm with (n:=k).
+          repeat rewrite mult_assoc.
+          rewrite LE. auto. }
+        rewrite H5.
+        rewrite plus_comm with (n:=fact n) (m:= fact n * k).
+        rewrite plus_assoc.
+        rewrite <- Nat.mul_add_distr_l.
+        apply Nat.sub_add in H. rewrite H. rewrite plus_comm.
+        rewrite mult_comm. auto. Qed.
 
 (*-- Check --*)
 
