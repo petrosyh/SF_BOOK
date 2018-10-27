@@ -313,22 +313,14 @@ Lemma sorted_not_in: forall n m l
     (LT: n < m),
   ~ appears_in n l.
 Proof.
-  intros. induction SORTED.
+  intros. revert LT. revert n. induction SORTED.
   - unfold not. intros. inversion H.
   - unfold not. intros. inversion H; subst.
-    + admit.
-    +
-  (* FILL IN HERE *) admit.
+    + apply le_not_lt in COND2. auto.
+    + assert (n0 < hd).
+      { apply lt_le_trans with (m:=n); auto. }
+      apply IHSORTED in H0. auto.
 Qed.
-
-
-
-
-
-
-
-
-
 (** Hard:
     Prove the following theorem.
  **)
@@ -357,11 +349,48 @@ Fixpoint appears_inb (n: nat) (l: list nat) : bool :=
           else appears_inb n l')
   end.
 
+Lemma le_trans': forall n m p : nat, n <= m -> m <= p -> n <= p.
+Proof.
+  intros. induction H0; auto.
+Qed.
+
+Lemma le_S_n': forall n m: nat,
+    S n <= S m -> n <= m.
+Proof.
+  induction n.
+  - intros. clear. induction m; auto.
+  - intros.
+    inversion H; auto.
+    subst.
+    apply le_trans' with (m:= S(S n)); auto.
+Qed.
+
 Theorem appears_inb_correct: forall n l
     (SORTED: sorted_min 0 l)
     (NOTAPPEAR: appears_inb n l = false),
   ~ appears_in n l.
 Proof.
-  (* FILL IN HERE *) admit.
+  intros. generalize dependent n.
+  induction l; auto.
+  - intros. unfold not. intros. inversion H.
+  - inversion SORTED. subst.
+    intros. simpl in *. unfold not. intros. inversion H.
+    + subst. destruct (x<?x) eqn:Hx; cycle 1.
+      { destruct (x=?x) eqn:Hx'. inversion NOTAPPEAR.
+        rewrite Nat.eqb_refl in Hx'. inversion Hx'. }
+      rewrite ltb_lt in Hx. clear -Hx.
+      induction x. inversion Hx. unfold lt in *.
+      apply le_S_n' in Hx. apply IHx. auto.
+    + subst.
+      destruct (n<?x) eqn:Hx.
+      * rewrite ltb_lt in Hx.
+        apply sorted_not_in with (n:=n) in COND1; auto.
+      * destruct (n =? x) eqn:Hx'. inversion NOTAPPEAR.
+        assert (sorted_min 0 l).
+        { clear -COND1 COND2.
+          inversion COND1; subst.
+          - constructor.
+          - constructor; auto.
+            apply le_trans' with (m:=x); auto. }
+        apply IHl with (n:=n) in H0; auto.
 Qed.
-
