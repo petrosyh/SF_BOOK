@@ -259,11 +259,24 @@ Lemma two_three_rel_prime: forall n m
 Proof.
   intros.
   destruct (aux2 m). inversion H. exists x. auto.
-  
-  induction n.
-  - intros. inversion EQ. exists 0. admit.
-  - intros. rewrite H0 in EQ. admit.
-Admitted.
+  inversion H.
+  - exists x. auto.
+  - rewrite H1 in EQ.
+    rewrite mult_plus_distr_l in EQ.
+    rewrite Nat.mul_1_r in EQ.
+    rewrite mult_assoc in EQ.
+    rewrite mult_comm with (n:=3) in EQ.
+    assert (3=2+1) by auto.
+    rewrite H2 in EQ.
+    rewrite <- mult_assoc in EQ.
+    rewrite plus_comm with (n:=2) in EQ.
+    rewrite <- plus_assoc in EQ.
+    rewrite <- Nat.mul_1_r with (n:=2) in EQ.
+    rewrite <- mult_plus_distr_l in EQ.
+    rewrite Nat.mul_1_r with (n:=2) in EQ.
+    remember (1+ (1+2) *x) as t.
+    apply aux1 in EQ. contradiction.
+Qed.
 
 
 (*=========== 3141592 [30] ===========*)

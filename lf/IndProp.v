@@ -758,8 +758,19 @@ Theorem R_equiv_fR : forall m n o, R m n o <-> fR m n = o.
 Proof.
   intros.
   split; intros.
-  -
-(* FILL IN HERE *) Admitted.
+  - induction H; auto; unfold fR in *.
+    + rewrite <- IHR. auto.
+    + rewrite <- IHR. rewrite plus_n_Sm. auto.
+    + simpl in IHR. rewrite <- plus_n_Sm in IHR. inversion IHR. auto.
+    + rewrite plus_comm. auto.
+  - revert H. revert m. revert n.
+    induction o. 
+    + intros. destruct n; destruct m; unfold fR in *; auto; try inversion H.
+      constructor.
+    + intros. destruct m. unfold fR in H. simpl in H. rewrite H.
+      constructor. apply IHo. auto.
+      constructor. apply IHo. unfold fR in *.
+      inversion H. auto. Qed.
 (** [] *)
 
 End R.
@@ -1032,13 +1043,19 @@ Qed.
 Lemma empty_is_empty : forall T (s : list T),
   ~ (s =~ EmptySet).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros. unfold not. intros.
+  induction s. inversion H.
+  inversion H.
+Qed.
 
 Lemma MUnion' : forall T (s : list T) (re1 re2 : @reg_exp T),
   s =~ re1 \/ s =~ re2 ->
   s =~ Union re1 re2.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros. inversion H.
+  - constructor; auto.
+  - constructor 5. auto.
+Qed.
 
 (** The next lemma is stated in terms of the [fold] function from the
     [Poly] chapter: If [ss : list (list T)] represents a sequence of
@@ -1049,7 +1066,12 @@ Lemma MStar' : forall T (ss : list (list T)) (re : reg_exp),
   (forall s, In s ss -> s =~ re) ->
   fold app ss [] =~ Star re.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  induction ss.
+  - intros. simpl. constructor.
+  - intros. simpl. constructor.
+    + apply H. simpl. auto.
+    + apply IHss. intros. apply H. simpl. auto.
+Qed.
 (** [] *)
 
 (** **** Exercise: 4 stars, optional (reg_exp_of_list_spec)  *)
@@ -1060,7 +1082,20 @@ Proof.
 Lemma reg_exp_of_list_spec : forall T (s1 s2 : list T),
   s1 =~ reg_exp_of_list s2 <-> s1 = s2.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  split.
+  - revert s1. induction s2.
+    + intros. simpl in *. inversion H. auto.
+    + intros. simpl in *. inversion H. subst. inversion H3. subst. simpl.
+      apply IHs2 in H4. subst. auto.
+  - revert s2.
+    induction s1.
+    + intros. subst. simpl. constructor.
+    + intros. destruct s2. inversion H.
+      inversion H. subst. simpl.
+      assert (t::s2 = [t]++s2) by auto.
+      rewrite H0. constructor; auto.
+      constructor.
+Qed.
 (** [] *)
 
 (** Since the definition of [exp_match] has a recursive
@@ -1142,13 +1177,53 @@ Qed.
     regular expression matches some string. Prove that your function
     is correct. *)
 
-Fixpoint re_not_empty {T : Type} (re : @reg_exp T) : bool
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+Fixpoint re_not_empty {T : Type} (re : @reg_exp T) : bool :=
+  match re with
+  | EmptySet => false
+  | EmptyStr => true
+  | Char _ => true
+  | App r1 r2 => andb (re_not_empty r1) (re_not_empty r2)
+  | Union r1 r2 => orb (re_not_empty r1) (re_not_empty r2)
+  | Star r1 => true
+  end.
 
 Lemma re_not_empty_correct : forall T (re : @reg_exp T),
   (exists s, s =~ re) <-> re_not_empty re = true.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros. split.
+  - induction re; intros.
+    + inversion H. inversion H0.
+    + simpl. auto.
+    + auto.
+    + inversion H. inversion H0. subst.
+      simpl. rewrite andb_true_iff.
+      split. apply IHre1; eauto.
+      apply IHre2; eauto.
+    + inversion H. inversion H0. subst.
+      simpl.
+      rewrite orb_true_iff.
+      left. apply IHre1; eauto.
+      subst.
+      simpl.
+      rewrite orb_true_iff.
+      right. apply IHre2; eauto.
+    + simpl. auto.
+  - intros.
+    induction re.
+    + inversion H.
+    + exists []. constructor.
+    + exists [t]. constructor.
+    + simpl in H. 
+      rewrite andb_true_iff in H. inversion H.
+      apply IHre1 in H0.
+      apply IHre2 in H1.
+      inversion H0. inversion H1.
+      exists (x++x0). constructor; auto.
+    + simpl in H. rewrite orb_true_iff in H. inversion H.
+      * apply IHre1 in H0. inversion H0.
+        exists x. constructor. auto.
+      * apply IHre2 in H0. inversion H0. exists x. constructor 5; auto.
+    + exists []. constructor. Qed.
 (** [] *)
 
 (* ================================================================= *)
@@ -1286,7 +1361,19 @@ Lemma MStar'' : forall T (s : list T) (re : reg_exp),
     s = fold app ss []
     /\ forall s', In s' ss -> s' =~ re.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros. remember (Star re) as re'.
+  induction H; try inversion Heqre'.
+  - subst. exists []. split; auto.
+    intros. inversion H.
+  - inversion Heqre' as [Heqre].
+    apply IHexp_match2 in Heqre'. inversion Heqre'. inversion H1.
+    exists (s1::x). split.
+    + simpl. apply f_equal. auto.
+    + intros. simpl in H5.  inversion H5.
+      * subst. auto.
+      * apply H4. auto.
+Qed.
+(* one more *)
 (** [] *)
 
 (** **** Exercise: 5 stars, advanced (pumping)  *)
@@ -1369,7 +1456,36 @@ Proof.
        | re | s1 s2 re Hmatch1 IH1 Hmatch2 IH2 ].
   - (* MEmpty *)
     simpl. omega.
-  (* FILL IN HERE *) Admitted.
+  - simpl. omega.
+  - simpl.
+    intros.
+    rewrite app_length in H.
+    assert (pumping_constant re1 <= length s1 \/ pumping_constant re2 <= length s2).
+    admit.
+    admit.
+  - simpl.
+    admit.
+  - simpl.
+    admit.
+  - simpl. omega.
+  - simpl in *. intros. rewrite app_length in H.
+    destruct s1.
+    + simpl in *.
+      apply IH2. auto.
+    + simpl. exists [], (t :: s1), s2.
+      split.
+      { reflexivity. }
+      { split.
+        { intros contra. inversion contra. }
+        { simpl. induction m as [| m' IHm'].
+          - simpl. auto.
+          - replace (napp (S m') (t :: s1)) with ((t :: s1) ++ napp m' (t :: s1)).
+            + rewrite <- app_assoc.
+              apply MStarApp.
+              * apply Hmatch1.
+              * apply IHm'.
+            + auto.
+ Admitted.
 
 End Pumping.
 (** [] *)
@@ -1601,6 +1717,7 @@ Definition manual_grade_for_nostutter : option (prod nat string) := None.
     to be a merge of two others.  Do this with an inductive relation,
     not a [Fixpoint].)  *)
 
+
 (* FILL IN HERE *)
 
 (* Do not modify the following line: *)
@@ -1612,6 +1729,9 @@ Definition manual_grade_for_filter_challenge : option (prod nat string) := None.
     this: Among all subsequences of [l] with the property that [test]
     evaluates to [true] on all their members, [filter test l] is the
     longest.  Formalize this claim and prove it. *)
+
+
+
 
 (* FILL IN HERE *)
 (** [] *)
