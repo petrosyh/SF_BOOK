@@ -118,7 +118,15 @@ Search Permutation.
 
 Lemma insert_perm: forall x l, Permutation (x::l) (insert x l).
 Proof.
-(* FILL IN HERE *) Admitted.
+  intros. induction l; auto.
+  simpl. bdestruct (x<=?a).
+  - eapply Permutation_refl.
+  - eapply perm_trans.
+    { instantiate (1:= (a::x::l)).
+      eapply perm_swap. }
+    econstructor; eauto.
+Qed.
+
 (** [] *)
 
 (** **** Exercise: 3 stars  *)
@@ -126,7 +134,12 @@ Proof.
 
 Theorem sort_perm: forall l, Permutation l (sort l).
 Proof.
-(* FILL IN HERE *) Admitted.
+  induction l; auto.
+  simpl. eapply perm_trans.
+  { instantiate (1:= a::(sort l)).
+    econstructor; eauto. }
+  eapply insert_perm. Qed.
+
 (** [] *)
 
 (** **** Exercise: 4 stars  *)
@@ -137,14 +150,28 @@ Proof.
 Lemma insert_sorted:
   forall a l, sorted l -> sorted (insert a l).
 Proof.
-(* FILL IN HERE *) Admitted.
+  induction l; simpl.
+  - intros. econstructor.
+  - intros. bdestruct (a<=?a0).
+    + econstructor; eauto.
+    + inv H.
+      { simpl. econstructor. omega. econstructor. }
+      eapply IHl in H4. destruct (insert a (y::l0)) eqn:H'.
+      { econstructor. } econstructor; eauto. simpl in H'.
+      bdestruct (a<=?y); inv H'; omega.
+Qed.
+
 
 (** **** Exercise: 2 stars  *)
 (** This one is easy.   *)
 
 Theorem sort_sorted: forall l, sorted (sort l).
 Proof.
-(* FILL IN HERE *) Admitted.
+  induction l; simpl.
+  { econstructor. }
+  eapply insert_sorted; eauto.
+Qed.
+
 (** [] *)
 
 (** Now we wrap it all up.  *)
@@ -174,7 +201,11 @@ Lemma sorted_sorted': forall al, sorted al -> sorted' al.
     on the _sortedness_ of [al]. This proof is a bit tricky, so
     you may have to think about how to approach it, and try out
     one or two different ideas.*)
-
+Proof.
+  induction 1.
+  - unfold sorted'. intros. simpl. simpl in H. omega.
+  - unfold sorted'. intros. simpl. simpl in H. omega.
+  - unfold sorted' in *. intros.
 (* FILL IN HERE *) Admitted.
 (** [] *)
 
