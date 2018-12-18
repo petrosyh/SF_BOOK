@@ -26,6 +26,7 @@
    program operating on linked lists! *)
 
 Require Import Perm. 
+Require Import Lia.
 
 Fixpoint insert (i:nat) (l: list nat) := 
   match l with
@@ -206,7 +207,18 @@ Proof.
   - unfold sorted'. intros. simpl. simpl in H. omega.
   - unfold sorted'. intros. simpl. simpl in H. omega.
   - unfold sorted' in *. intros.
-(* FILL IN HERE *) Admitted.
+    destruct i; destruct j; auto.
+    + specialize (IHsorted 0 j). simpl in *.
+      destruct j; auto.
+      eapply Nat.le_trans; eauto. eapply IHsorted. omega.
+    + omega.
+    + specialize (IHsorted i j). simpl. apply IHsorted.
+      inv H1. inv H2. inv H3. simpl. rewrite <- H2. omega.
+      simpl. omega.
+      destruct j; try omega.
+      simpl in *. nia.
+Qed.
+
 (** [] *)
 
 (** **** Exercise: 3 stars, optional (sorted'_sorted)  *)
@@ -216,7 +228,17 @@ Lemma sorted'_sorted: forall al, sorted' al -> sorted al.
     because [sorted'] is not an inductive predicate. *)
 
 Proof.
-(* FILL IN HERE *) Admitted.
+  induction al; intros; try econstructor.
+  unfold sorted' in H.
+  destruct al; try econstructor.
+  - specialize (H 0 1). simpl in H. apply H; omega.
+  - eapply IHal. unfold sorted'. intros.
+    destruct i; destruct j; simpl; try omega.
+    + specialize (H 1 (S (S j))).
+      simpl in H. eapply H. simpl in H0. omega.
+    + specialize (H (S (S i)) (S (S j))). simpl in *.
+      eapply H; omega.
+Qed.
 (** [] *)
 
 (* ################################################################# *)
@@ -245,13 +267,38 @@ Lemma Forall_nth:
   forall {A: Type} (P: A -> Prop) d (al: list A),
      Forall P al <-> (forall i,  i < length al -> P (nth i al d)).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros.
+  split. intros H.
+  - induction H; destruct i; simpl in *; try omega; auto.
+    intros. eapply IHForall. omega.
+  - intros. induction al; try econstructor.
+    + specialize (H 0). simpl in H. apply H; omega.
+    + apply IHal. intros. specialize (H (S i)). simpl in H.
+      apply H; omega.
+Qed.
 (** [] *)
 
 
 (** **** Exercise: 4 stars, optional (insert_sorted')  *)
 Lemma insert_sorted':
   forall a l, sorted' l -> sorted' (insert a l).
+Proof.
+  intros. unfold sorted' in *.
+  induction l; intros.
+  - simpl. destruct i; destruct j; try omega.
+    { destruct j; simpl in H0; try omega. }
+    { destruct i; destruct j; nia. }
+  -  simpl. simpl in H0. bdestruct (a<=?a0).
+     + destruct i; destruct j; try (simpl; omega).
+       * simpl. destruct j; auto.
+         specialize (H 0 (S j)). simpl in H. eapply Nat.le_trans; eauto.
+         apply H; auto. simpl in H0. omega.
+       * simpl in H0. simpl in H. simpl. apply H. omega.
+     + destruct i; destruct j; try (simpl; omega).
+       * simpl.
+         assert (a <= nth j (insert a l) 0).
+         { admit. }
+         
 (* FILL IN HERE *) Admitted.
 (** [] *)
 
