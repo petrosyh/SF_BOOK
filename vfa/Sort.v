@@ -248,16 +248,76 @@ Proof.
   (* FILL IN HERE *) Admitted.
 (** [] *)
 
+Lemma aux
+      a l
+      (SORTED': sorted' (a :: l))
+  :
+    sorted' l.
+Proof.
+  revert SORTED'. revert a.
+  induction l.
+  - unfold sorted'. intros. simpl. destruct i; destruct j; auto.
+  - intros. unfold sorted' in SORTED'.
+    unfold sorted'. intros. destruct i; destruct j; try omega.
+    + simpl. specialize (SORTED' 1 (S (S j))). simpl in SORTED'.
+      apply SORTED'. simpl in *; omega.
+    + simpl. specialize (SORTED' (S (S i)) (S (S j))). simpl in *.
+      apply SORTED'. omega.
+Qed.
+
+Lemma aux2
+      a b l
+      (LE: a <= b)
+      (SORTED': sorted' (b :: l))
+  :
+    sorted' (a::b::l).
+Proof.
+  unfold sorted' in *. intros. destruct i; destruct j; simpl in *; auto; try omega.
+  - destruct j; auto. specialize (SORTED' 0 (S j)). simpl in SORTED'.
+    eapply Nat.le_trans; eauto. eapply SORTED'. omega.
+  - destruct i; destruct j; auto; simpl in *; try omega.
+    + specialize (SORTED' 0 (S j)). simpl in *. apply SORTED'. omega.
+    + specialize (SORTED' (S i) (S j)). simpl in *. apply SORTED'. omega.
+Qed.
 
 (** **** Exercise: 4 stars, optional (insert_sorted')  *)
 Lemma insert_sorted':
   forall a l, sorted' l -> sorted' (insert a l).
-(* FILL IN HERE *) Admitted.
+Proof.
+  induction l.
+  { intros. simpl in *. unfold sorted'. simpl; intros.
+    destruct i; destruct j; try omega. }
+  intros. simpl. bdestruct (a<=?a0).
+  - unfold sorted'. intros. destruct i; destruct j; simpl; auto.
+    { destruct j; auto. unfold sorted' in H.
+      specialize (H 0 (S j)). simpl in H. eapply Nat.le_trans; eauto. apply H.
+      simpl in H1. omega. }
+    { omega. }
+    destruct i; destruct j; auto; try omega.
+    + unfold sorted' in H. specialize (H 0 (S j)). simpl in *. apply H. omega.
+    + unfold sorted' in H. specialize (H (S i) (S j)). simpl in *. apply H. omega.
+  - assert (sorted' l).
+    { eapply aux; eauto. }
+    assert (sorted' (insert a l)) by auto.
+    destruct l.
+    + simpl. apply aux2; auto. omega.
+    + simpl in *.
+      bdestruct (a<=?n).
+      * apply aux2; auto. omega.
+      * unfold sorted' in H. specialize (H 0 1). simpl in H.
+        assert (a0<=n) by omega.
+        eapply aux2; eauto.
+Qed.
+  
 (** [] *)
 
 (** **** Exercise: 4 stars, optional (insert_sorted')  *)
 Theorem sort_sorted': forall l, sorted' (sort l).
-(* FILL IN HERE *) Admitted.
+Proof.
+  induction l.
+  { simpl. unfold sorted'. intros. simpl. destruct i; destruct j; auto. }
+  simpl. eapply insert_sorted'; eauto. Qed.
+
 (** [] *)
 
 (* ================================================================= *)
