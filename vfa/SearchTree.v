@@ -460,13 +460,9 @@ split.
     bdestruct (x<?2); subst; try omega; auto.
     bdestruct (3=?x); subst; try omega; auto.
     bdestruct (x<?3); subst; try omega; auto. }
-  subst. subst m. subst bogus. simpl. auto.
-  unfold t_update, t_empty. extensionality x.
-  bdestruct (3=?x); subst; try omega; auto.
-  bdestruct (2=?3); subst; try omega; auto. admit.
-- admit.
-- admit.
+  subst m'. rewrite H1. apply H0. repeat econstructor.
 Admitted.
+
 (** To prove the first subgoal, prove that [m=m'] (by [extensionality]) and
       then use [H].
 
@@ -608,7 +604,18 @@ Lemma slow_elements_range:
   In (k,v) (slow_elements t) ->
   lo <= k < hi.
 Proof.
-(* FILL IN HERE *) Admitted.
+  induction 1.
+  - simpl. intros. inv H0.
+  - simpl in *.
+    intros.
+    assert (In (k, v) (slow_elements l) \/ (k, v) = (k0, v0) \/ In (k, v) (slow_elements r)).
+    { apply in_app_or in H1. inv H1; auto. simpl in H2. inv H2; eauto. }
+    inv H2.
+    { eapply IHSearchTree'1 in H3. eapply SearchTree'_le in H0. omega. }
+    inv H3.
+    { inv H2. eapply SearchTree'_le in H. eapply SearchTree'_le in H0. omega. }
+    { eapply IHSearchTree'2 in H2. eapply SearchTree'_le in H. omega. }
+Qed.
 (** [] *)
 
 (* ================================================================= *)
@@ -710,6 +717,15 @@ unfold combine, t_update.
 bdestruct (k=?i); [ omega | ].
 bdestruct (i<?k); [ | omega].
 auto.
+simpl.
+assert (~ (exists v : V, In (i, v) (slow_elements l))) by auto.
+eapply list2map_app_right in Hleft.
+erewrite Hleft. simpl.
+unfold t_update, combine.
+bdestruct (k=?i); auto.
+bdestruct (i<?k); auto.
+assert (i>=k).
+{ simpl in Hleft. admit. } omega.
 (* FILL IN HERE *) Admitted.
 (** [] *)   
 

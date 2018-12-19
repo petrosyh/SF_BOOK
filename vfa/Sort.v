@@ -318,14 +318,7 @@ Proof.
   { intros. simpl in *. unfold sorted'. simpl; intros.
     destruct i; destruct j; try omega. }
   intros. simpl. bdestruct (a<=?a0).
-  - unfold sorted'. intros. destruct i; destruct j; simpl; auto.
-    { destruct j; auto. unfold sorted' in H.
-      specialize (H 0 (S j)). simpl in H. eapply Nat.le_trans; eauto. apply H.
-      simpl in H1. omega. }
-    { omega. }
-    destruct i; destruct j; auto; try omega.
-    + unfold sorted' in H. specialize (H 0 (S j)). simpl in *. apply H. omega.
-    + unfold sorted' in H. specialize (H (S i) (S j)). simpl in *. apply H. omega.
+  - eapply aux2; eauto.
   - assert (sorted' l).
     { eapply aux; eauto. }
     assert (sorted' (insert a l)) by auto.
@@ -338,6 +331,7 @@ Proof.
         assert (a0<=n) by omega.
         eapply aux2; eauto.
 Qed.
+
 (** [] *)
 
 (** **** Exercise: 4 stars, optional (insert_sorted')  *)
