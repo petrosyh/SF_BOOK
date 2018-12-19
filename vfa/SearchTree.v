@@ -276,8 +276,9 @@ Definition example_tree (v2 v4 v5 : V) :=
   you think example_tree should correspond to.  Use
   [t_update] and [(t_empty default)]. *)
 
-Definition example_map (v2 v4 v5: V) : total_map V
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+Definition example_map (v2 v4 v5: V) : total_map V :=
+ (t_update (t_update (t_update (t_empty default) 2 v2) 5 v5) 4 v4).
+
 (** [] *)
 
 (** To build the [Abs] relation, we'll use these two auxiliary
@@ -310,6 +311,13 @@ evar (m: total_map V).
 replace (example_map v2 v4 v5) with m; subst m.
 repeat constructor.
 extensionality x.
+unfold example_map. unfold t_update, combine, t_empty.
+bdestruct (4=?x); auto.
+bdestruct (x<?4); auto.
+- bdestruct (2=?x). bdestruct (5=?x); auto. subst; omega.
+  bdestruct (x<?2); bdestruct (5=?x); auto; subst; omega.
+- bdestruct (5=?x); auto. bdestruct (x<?5); bdestruct (2=?x); auto; subst; omega.
+Qed.
 (* HINT: 
   First,    [unfold example_map, t_update, combine, t_empty, beq_id.]
   Then, repeat the following procedure:  If you see something like
@@ -318,7 +326,7 @@ extensionality x.
   If you're too lazy to check for yourself whether they are true,
    use [bdestruct (4 =? x); try omega].
 *)
-(* FILL IN HERE *) Admitted.
+
 (** [] *)
 
 (** You can ignore this lemma, unless it fails. *)
@@ -328,14 +336,14 @@ intros.
 evar (m: total_map V).
 assert (Abs (example_tree v2 v4 v5) m).
 repeat constructor.
-(change m with (example_map v2 v4 v5) in H || auto);
-(* auto; *)
-fail "Did you use copy-and-paste, from your check_example_map proof,
-       into your example_map definition?  If so, very clever. 
-       Please try it again with an example_map definition that 
-       you make up from first principles.  Or, to skip that, 
-       uncomment the (* auto; *) above.".
-Qed.
+(change m with (example_map v2 v4 v5) in H || auto).
+Qed. (* TODO: check one more plz *)
+
+(* fail "Did you use copy-and-paste, from your check_example_map proof, *)
+(*        into your example_map definition?  If so, very clever.  *)
+(*        Please try it again with an example_map definition that  *)
+(*        you make up from first principles.  Or, to skip that,  *)
+(*        uncomment the (* auto; *) above.". *)
 
 Theorem empty_tree_relate: Abs empty_tree (t_empty default).
 Proof.
@@ -347,7 +355,14 @@ Theorem lookup_relate:
   forall k t cts ,
     Abs t cts -> lookup k t =  cts k.
 Proof.
-(* FILL IN HERE *) Admitted.
+  induction 1.
+  { unfold t_empty. auto. }
+  simpl. unfold t_update, combine. bdestruct (k<?k0).
+  - bdestruct (k0=?k); try omega. auto.
+  - bdestruct (k0<?k); try omega.
+    + bdestruct (k0=?k); try omega. auto.
+    + assert (k0=k) by omega. subst. bdestruct (k=?k); try omega. auto.
+Qed.
 (** [] *)
 
 (** **** Exercise: 4 stars (insert_relate)  *)
@@ -356,7 +371,38 @@ Theorem insert_relate:
     Abs t cts ->
     Abs (insert k v t) (t_update cts k v).
 Proof.
-(* FILL IN HERE *) Admitted.
+  induction 1.
+  - simpl.
+    evar (m: total_map V).
+    assert (Abs (T E k v E) m).
+    { repeat econstructor. }
+    assert (m = (t_update (t_empty default) k v)).
+    { subst m. unfold t_update, combine. extensionality x.
+      bdestruct (k=?x); auto.
+      bdestruct (x<?k); auto. }
+    subst m. rewrite <- H0. repeat econstructor.
+  - simpl. bdestruct (k<?k0).
+    + rewrite t_update_permute; try omega.
+      assert (t_update (combine k0 a b) k v = combine k0 (t_update a k v) b).
+      { unfold t_update, combine. extensionality x.
+          bdestruct (k=?x); auto. subst.
+          bdestruct (x<?k0); auto. try omega. }
+      rewrite H2. econstructor; eauto.
+    + assert (k > k0 \/ k = k0) by omega.
+      destruct H2.
+      * bdestruct (k0 <? k); try omega.
+        rewrite t_update_permute; try omega.
+        assert (t_update (combine k0 a b) k v = combine k0 a (t_update b k v)).
+        { unfold t_update, combine. extensionality x.
+          bdestruct (k0=?x); auto. subst.
+          bdestruct (x<?x); auto. try omega.
+          bdestruct (k=?x); auto; subst.
+          bdestruct (x<?k0); auto. omega. }
+        rewrite H4. econstructor; eauto.
+      * bdestruct (k0<?k); try omega. subst.
+        rewrite t_update_shadow. econstructor; eauto.
+Qed.
+          
 (** [] *)
 
 (* ################################################################# *)
@@ -408,6 +454,19 @@ pose (m' := t_update
            (t_empty default)) 2 v).
 assert (Paradox: list2map (elements bogus) = m /\ list2map (elements bogus) <> m).
 split.
+- assert (m=m').
+  { subst m. subst m'. unfold t_update, t_empty. extensionality x.
+    bdestruct (2=?x); auto. unfold combine.
+    bdestruct (x<?2); subst; try omega; auto.
+    bdestruct (3=?x); subst; try omega; auto.
+    bdestruct (x<?3); subst; try omega; auto. }
+  subst. subst m. subst bogus. simpl. auto.
+  unfold t_update, t_empty. extensionality x.
+  bdestruct (3=?x); subst; try omega; auto.
+  bdestruct (2=?3); subst; try omega; auto. admit.
+- admit.
+- admit.
+Admitted.
 (** To prove the first subgoal, prove that [m=m'] (by [extensionality]) and
       then use [H].
 
@@ -422,7 +481,6 @@ split.
       In all 3 goals, when you need to unfold local definitions such
       as [bogus] you can use [unfold bogus] or [subst bogus].  *)
 
-(* FILL IN HERE *) Admitted.
 (** [] *)
 
 (** What went wrong?  Clearly, [elements_relate] is true; you just
@@ -535,7 +593,11 @@ Proof.
 extensionality s.
 unfold elements.
 assert (forall base, elements' s base = slow_elements s ++ base).
-(* FILL IN HERE *) Admitted.
+{
+  induction s.
+  - simpl. auto.
+  - simpl. intros. rewrite IHs1. rewrite IHs2. rewrite <- app_assoc. auto. }
+rewrite H. rewrite app_nil_r. auto. Qed.
 (** [] *)
 
 
