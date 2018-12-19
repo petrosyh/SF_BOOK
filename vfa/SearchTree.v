@@ -725,7 +725,11 @@ unfold t_update, combine.
 bdestruct (k=?i); auto.
 bdestruct (i<?k); auto.
 assert (i>=k).
-{ simpl in Hleft. admit. } omega.
+{ simpl in Hleft.
+  destruct (In_decidable (slow_elements r) i).
+  - inv H2. eapply slow_elements_range in H3; eauto. omega.
+  - eapply list2map_app_right in H2. admit.
+ } omega.
 (* FILL IN HERE *) Admitted.
 (** [] *)   
 
@@ -745,7 +749,8 @@ Proof.
 clear default.  (* This is here to avoid a nasty interaction between Admitted
    and Section/Variable.  It's also a hint that the [default] value
    is not needed in this theorem. *)
-(* FILL IN HERE *) Admitted.
+econstructor. instantiate (1:=0). econstructor. eauto. Qed.
+
 (** [] *)
 
 Remark omega_on_keys:
@@ -755,20 +760,21 @@ intros.
 try omega.  (* Oops! [omega] cannot solve this one.
     The problem is that [i] and [j] have type [key] instead of type [nat].
     The solution is easy enough: *)
-unfold key in *.
-omega.
+Qed.
 
 (** So, if you get stuck on an [omega] that ought to work,
    try unfolding the types from [key] to [nat] *)
 
-Qed.
+
 
 (** **** Exercise: 3 stars (insert_SearchTree)  *)
 Theorem insert_SearchTree:
   forall k v t, 
    SearchTree t -> SearchTree (insert k v t).
 Proof.
-clear default. (* This is here to avoid a nasty interaction between Admitted and Section/Variable *)
+  clear default.
+  
+  (* This is here to avoid a nasty interaction between Admitted and Section/Variable *)
 (* FILL IN HERE *) Admitted.
 (** [] *)
 
@@ -880,7 +886,11 @@ Qed.
 Lemma can_relate:
  forall t,  SearchTree t -> exists cts, Abs t cts.
 Proof.
-(* FILL IN HERE *) Admitted.
+  intros. inv H. revert H0. revert hi. revert t. induction 1.
+  - eexists. econstructor.
+  - inv IHSearchTree'1; inv IHSearchTree'2.
+    eexists; econstructor; eauto. Qed.
+
 (** [] *)
 
 (** Now, because we happen to have a super-strong abstraction relation, that
@@ -890,7 +900,11 @@ Proof.
 Lemma unrealistically_strong_can_relate:
  forall t,  exists cts, Abs t cts.
 Proof.
-(* FILL IN HERE *) Admitted.
+  induction t.
+  - repeat econstructor.
+  - inv IHt1; inv IHt2.
+    repeat econstructor; eauto.
+Qed.
 (** [] *)
 
 (* ################################################################# *)
@@ -955,6 +969,25 @@ apply H0.
 apply H1.
 Qed.
 
+Lemma aux_a
+      l1 l2 k
+      (LST1: list2map l1 k = default)
+      (LST2: list2map l2 k = default)
+  :
+    list2map (l1++l2) k = default.
+Proof.
+  revert LST2. revert LST1. revert k. revert l2.
+  induction l1.
+  - simpl; intros. auto.
+  - intros. simpl. destruct a.
+    unfold t_update. bdestruct (k0=?k); cycle 1.
+    + simpl in LST1.
+      unfold t_update in LST1. bdestruct (k0=?k); try omega.
+      eapply IHl1; eauto.
+    + rewrite H in LST1. simpl in LST1. unfold t_update in LST1.
+      bdestruct (k=?k); try omega. auto.
+Qed.
+      
 (** **** Exercise: 4 stars, optional (lookup_relateX)  *)
 Theorem lookup_relateX:
   forall k t cts ,
@@ -965,12 +998,39 @@ unfold AbsX in H0. subst cts.
 inv H. remember 0 as lo in H0.
 clear - H0.
 rewrite elements_slow_elements.
+induction H0.
+- simpl. unfold t_empty. auto.
+- simpl. bdestruct (k<?k0).
+  + rewrite IHSearchTree'1.
+    destruct (In_decidable (slow_elements l) k).
+    * inv H0. eapply list2map_app_left in H1; eauto.
+    * destruct (In_decidable ((k0, v)::(slow_elements r)) k).
+      { inv H1. simpl in H2. inv H2.
+        - inv H1. try omega.
+        - eapply slow_elements_range in H1; eauto. omega. }
+      eapply list2map_not_in_default in H0.
+      eapply list2map_not_in_default in H1.
+      rewrite H0. 
+      rewrite aux_a; eauto.
+  + rewrite IHSearchTree'2.
+    bdestruct (k0<?k); try omega.
+    * destruct (In_decidable (slow_elements l) k).
+      { inv H1. eapply slow_elements_range in H2; eauto. omega. }
+      { eapply list2map_app_right in H1. erewrite H1. simpl.
+        unfold t_update. bdestruct (k0=?k); try omega. auto. }
+    * assert (k=k0) by omega. subst.
+      destruct (In_decidable (slow_elements l) k0).
+      { inv H1. eapply slow_elements_range in H2; eauto. omega. }
+      (* destruct (In_decidable (slow_elements r) k0). *)
+      (* { inv H2. eapply slow_elements_range in H3; eauto. omega. } *)
+      eapply list2map_app_right in H1.
+      erewrite H1. simpl. unfold t_update.
+      bdestruct (k0=?k0); try omega. auto.
+Qed.
 (** To prove this, you'll need to use this collection of facts:
    [In_decidable], [list2map_app_left], [list2map_app_right],
    [list2map_not_in_default], [slow_elements_range].  The point is,
    it's not very pretty. *)
-
-(* FILL IN HERE *) Admitted.
 (** [] *)
 
 (* ================================================================= *)
