@@ -718,19 +718,24 @@ bdestruct (k=?i); [ omega | ].
 bdestruct (i<?k); [ | omega].
 auto.
 simpl.
-assert (~ (exists v : V, In (i, v) (slow_elements l))) by auto.
-eapply list2map_app_right in Hleft.
-erewrite Hleft. simpl.
 unfold t_update, combine.
 bdestruct (k=?i); auto.
-bdestruct (i<?k); auto.
-assert (i>=k).
-{ simpl in Hleft.
-  destruct (In_decidable (slow_elements r) i).
-  - inv H2. eapply slow_elements_range in H3; eauto. omega.
-  - eapply list2map_app_right in H2. admit.
- } omega.
-(* FILL IN HERE *) Admitted.
+{ subst.
+  eapply list2map_app_right in Hleft. erewrite Hleft. simpl.
+  unfold t_update. bdestruct (i=?i); try omega. auto. }
+
+bdestruct (i<?k); cycle 1.
+{ eapply list2map_app_right in Hleft. erewrite Hleft. simpl.
+  unfold t_update. bdestruct (k=?i); try omega. auto. }
+destruct (In_decidable (slow_elements r) i).
+{ inv H1. eapply slow_elements_range in H0_0; eauto. omega. }
+assert (~ (exists v : V, In (i, v) (slow_elements l))) by auto.
+eapply list2map_app_right in Hleft. erewrite Hleft. simpl.
+unfold t_update. bdestruct (k=?i); try omega.
+eapply list2map_app_right with (bl:=[]) in H1.
+eapply list2map_app_right with (bl:=[]) in H2.
+rewrite app_nil_r in *. rewrite H1. rewrite H2. auto. Qed.
+
 (** [] *)   
 
 (* ################################################################# *)
@@ -765,7 +770,44 @@ Qed.
 (** So, if you get stuck on an [omega] that ought to work,
    try unfolding the types from [key] to [nat] *)
 
+Lemma insert_aux0
+      lo' lo hi hi' t
+      (LE1: lo' <= lo)
+      (LE2: hi <= hi')
+      (TREE: SearchTree' lo t hi)
+  :
+    SearchTree' lo' t hi'.
+Proof.
+  generalize dependent lo.
+  generalize dependent hi.
+  generalize dependent lo'.
+  generalize dependent hi'.
+  induction t.
+  - econstructor. eapply SearchTree'_le in TREE. omega.
+  -  intros. inv TREE. econstructor.
+     + eapply IHt1; eauto.
+     + eapply IHt2; eauto.
+Qed.
 
+Lemma insert_aux1
+      k v lo hi t
+      (LE: lo <= k < hi)
+      (TREE: SearchTree' lo t hi)
+  :
+    SearchTree' lo (insert k v t) hi.
+Proof.
+  revert v. induction TREE.
+  - intros. repeat econstructor; omega.
+  - intros. simpl.
+    bdestruct (k<?k0).
+    + econstructor; eauto.
+      eapply IHTREE1. omega.
+    + bdestruct (k0<?k).
+      * econstructor; eauto.
+        eapply IHTREE2. omega.
+      * econstructor; eauto. eapply insert_aux0; eauto.
+        eapply insert_aux0. instantiate (1:= S k0). omega. eauto. eauto.
+Qed.
 
 (** **** Exercise: 3 stars (insert_SearchTree)  *)
 Theorem insert_SearchTree:
@@ -773,9 +815,24 @@ Theorem insert_SearchTree:
    SearchTree t -> SearchTree (insert k v t).
 Proof.
   clear default.
-  
+  intros. inv H.
+  bdestruct (k<?hi).
+  - econstructor. instantiate (1:=hi). eapply insert_aux1; eauto. omega.
+  - econstructor. instantiate (1:= S k).
+    revert H. revert k.
+    induction H0.
+    { subst. econstructor; econstructor; omega. }
+    intros. simpl.
+    bdestruct (k0<?k).
+    + econstructor; eapply SearchTree'_le in H0_0; omega.
+    + bdestruct (k<?k0); try omega.
+      * econstructor; eauto.
+      * econstructor. eapply insert_aux0 in H0_; eauto.
+        assert (k=k0) by omega. subst.
+        eapply insert_aux0 in H0_0; eauto. Qed.
+
   (* This is here to avoid a nasty interaction between Admitted and Section/Variable *)
-(* FILL IN HERE *) Admitted.
+
 (** [] *)
 
 (* ################################################################# *)
