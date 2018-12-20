@@ -150,7 +150,15 @@ Compute (show 42).
 (** **** Exercise: 1 star (showNatBool)  *)
 (** Write a [Show] instance for pairs of a nat and a bool. *)
 
-(* FILL IN HERE *)
+Instance showNatBool : Show (nat * bool) :=
+  {
+    show := fun a => match a with
+                    | (x, y) => "(" ++ (show x) ++ ", " ++ (show y) ++ ")"
+                    end
+  }.
+
+Compute (show (42, true)).
+
 (** [] *)
 
 (** Next, we can define functions that use the overloaded function
@@ -161,6 +169,7 @@ Definition showOne {A : Type} `{Show A} (a : A) : string :=
 
 Compute (showOne true).
 Compute (showOne 42).
+Compute (showOne (42, true)).
 
 (** The parameter [`{Show A}] is a _class constraint_, which states
     that the function [showOne] is expected to be applied only to
@@ -190,6 +199,9 @@ Compute (showTwo Red Green).
 (** What happens if we forget the class constraints in the definitions
     of [showOne] or [showTwo]?  Try deleting them and see what
     happens. *)
+
+(** unable to satisfy the following constraints *)
+
 (** [] *)    
 
 (** Of course, [Show] is not the only interesting typeclass.  There
@@ -233,12 +245,18 @@ Instance eqNat : Eq nat :=
     [x] and [y] are equal no matter what their type is, it is not
     possible to write a decidable equality _checker_ for arbitrary
     types.  In particular, equality at types like [nat->nat] is
-    undecidable. *)
+    undecidable. *) (* TODO: what it means *)
 
 (** **** Exercise: 3 stars, optional (boolArrowBool)  *)
 (** There are some function types, like [bool->bool], for which
     checking equality makes perfect sense.  Write an [Eq] instance for
     this type. *)
+
+Instance eqArrowBool : Eq (bool -> bool) :=
+  {
+    eqb := fun (fa fb : bool -> bool) => andb (eqb (fa true) (fb true)) (eqb (fa false) (fb false))
+  }.
+
 
 (* FILL IN HERE *)
 (** [] *)
@@ -289,7 +307,22 @@ Instance showList {A : Type} `{Show A} : Show (list A) :=
 (** Write an [Eq] instance for lists and [Show] and [Eq] instances for
     the [option] type constructor. *)
 
-(* FILL IN HERE *)
+Instance eqEx {A: Type} `{Eq A} : Eq (option A) :=
+  {
+    eqb a b :=
+      match a with
+      | Some a1 => match b with
+                   | Some b1 => eqb a1 b1
+                   | None => false
+                   end
+      | None => match b with
+                | None => true
+                | _ => false
+                end
+      end
+  }.
+
+
 (** [] *)
 
 (** **** Exercise: 3 stars, optional (boolArrowA)  *)
@@ -297,7 +330,11 @@ Instance showList {A : Type} `{Show A} : Show (list A) :=
     an equality instance for any type of the form [bool->A], where [A]
     itself is an [Eq] type.  Show that it works for [bool->bool->nat]. *)
 
-(* FILL IN HERE *)
+Instance eqArrowA {A: Type} `{Eq A} : Eq (bool -> A) :=
+  {
+    eqb := fun (fa fb : bool -> A) => andb (eqb (fa true) (fb true)) (eqb (fa false) (fb false))
+  }.
+
 (** [] *)
 
 (* ================================================================= *)
@@ -356,18 +393,70 @@ Definition max {A: Type} `{Eq A} `{Ord A} (x y : A) : A :=
 (** **** Exercise: 1 star (missingConstraintAgain)  *)
 (** What does Coq say if the [Ord] class constraint is left out of the
     definition of [max]?  What about the [Eq] class constraint? *)
+
+Definition max' {A: Type} `{Ord A} (x y : A) : A :=
+  if le x y then y else x.
+
 (** [] *)    
 
 (** **** Exercise: 3 stars (ordMisc)  *)
 (** Define [Ord] instances for options and pairs. *)
 
-(* FILL IN HERE *)
+Instance OrdEx {A: Type} `{Ord A} : Ord (option A) :=
+  {
+    le a b := match a with
+              | Some a1 => match b with
+                           | Some b1 => le a1 b1
+                           | None => false
+                           end
+              | None => match b with
+                        | None => false
+                        | _ => false
+                        end
+              end
+  }.
+
+Instance OrdPair {A B: Type} `{Ord A} `{Ord B} : Ord (A*B) :=
+  {
+    le x y := match x with
+              | (a, b) => match y with
+                          | (c, d) => andb (le a c) (le b d)
+                          end
+              end
+  }.
+
 (** [] *)
 
 (** **** Exercise: 3 stars (ordList)  *)
 (** For a little more practice, define an [Ord] instance for lists. *)
 
-(* FILL IN HERE *)
+Fixpoint ListAux {A : Type} (eq : A -> A -> bool) (lx ly: list A) : bool :=
+  match lx with
+  | nil => match ly with
+           | nil => true
+           | _ => false
+           end
+  | hx::tx => match ly with
+              | hy::ty => andb (eq hx hy) (ListAux eq tx ty)
+              | _ => false
+              end
+  end.
+
+Instance EqList {A: Type} `{Eq A} : Eq (list A) :=
+  {
+    eqb lx ly := ListAux eqb lx ly 
+  }. (* why i cant define typeclass recursivly.... *)
+
+Instance OrdList {A: Type} `{Ord A} : Ord (list A) :=
+  {
+    le lx ly := ListAux le lx ly
+  }.
+
+
+Compute (le [2; 6] [4; 5]).
+
+Compute (eq [2; 6] [4; 5]).
+
 (** [] *)
 
 (* ################################################################# *)
@@ -434,7 +523,7 @@ Print showOne1.
     can be disabled by writing [@], so a bare occurrence of [showOne1]
     means the same as [@showOne1 _ _].  The "maximally inserted" part
     says that these arguments should inserted automatically even when
-    there is no following explicit argument. *)
+    there is no following explicit argument. *) (* TODO: What it means? *)
 
 (** In fact, even the [`{Show A}] form hides one bit of implicit
     generalization: the bound name of the [Show] constraint itself.
@@ -624,6 +713,10 @@ Check {| lx:=2; ly:=4; label:="hello" |}.
 (** **** Exercise: 1 star (rcdParens)  *)
 (** Note that the [A] parameter in the definition of [LabeledPoint] is
     bound with parens, not curly braces. Why is this a better choice? *)
+Check {| lx:=2; ly:=4; label:=3 |}.
+
+(* TODO: I don't know... *)
+
 (** [] *)
 
 (* ================================================================= *)
@@ -942,7 +1035,23 @@ Defined.
 (** Give instance declarations showing that, if [P] and [Q] are
     decidable propositions, then so are [~P] and [P\/Q]. *)
 
-(* FILL IN HERE *)
+Instance Dec_neg {P} {H: Dec P} : Dec (~P).
+Proof.
+  constructor. unfold decidable.
+  destruct H as [D]; destruct D.
+  - right. unfold not. intros. contradiction.
+  - left. auto. Defined.
+
+Instance Dec_disj {P Q} {H : Dec P} {I : Dec Q} : Dec (P \/ Q).
+Proof.
+  constructor. unfold decidable.
+  destruct H; destruct I. destruct dec0; destruct dec1.
+  - left. auto.
+  - left. auto.
+  - left. auto.
+  - right. unfold not in *. intros.
+    destruct H. apply n; auto. apply n0; auto.
+Defined.
 (** [] *)
 
 (** **** Exercise: 4 stars (Dec_All)  *)
@@ -959,7 +1068,21 @@ Fixpoint All {T : Type} (P : T -> Prop) (l : list T) : Prop :=
 (** Create an instance of [Dec] for [All P l], given that [P a] is
     decidable for every [a]. *)
 
-(* FILL IN HERE *)
+(* TODO: why not forall a, In a l...? *)
+
+Instance Dec_All {T:Type} {P:T -> Prop} {l:list T} {H: forall a, Dec (P a)} : Dec (All P l).
+Proof.
+  constructor. unfold decidable. revert H. induction l.
+  - intros. simpl in *. auto.
+  - intros. simpl in *.
+    assert (forall a : T, Dec (P a)) by auto.
+    apply IHl in X. destruct X; specialize (H a); destruct H as [D]; destruct D.
+    + left. split; auto.
+    + right. unfold not. intros. inversion H. apply n; auto.
+    + right. unfold not. intros. inversion H. apply n; auto.
+    + right. unfold not. intros. inversion H. apply n; auto.
+Qed.
+
 (** [] *)
 
 (** One reason for doing all this is that it makes it easy to move
@@ -1211,6 +1334,9 @@ Fail Check (foo true).
 
 (** **** Exercise: 1 star (debugDefaulting)  *)
 (** Do [Set Typeclasses Debug] and verify that this is what happened. *)
+(* Set Typeclasses Debug. *)
+
+(* Definition foo' x := if x =? x then "Of course" else "Impossible". *)
 (** [] *)
 
 (* ================================================================= *)
@@ -1225,7 +1351,7 @@ Fail Check (foo true).
 
 Inductive baz := Baz : nat -> baz.
 
-Instance baz1 : Show baz :=
+Instance baz1 : Show baz := (* TODO: is it defining Type "Show baz"?? *)
   {
     show b :=
       match b with
@@ -1435,7 +1561,7 @@ Instance MyMap_trans {A B C : Type} `{MyMap A B} `{MyMap B C} : MyMap A C :=
   { mymap a := mymap (mymap a) }.
 
 (** This does get us from [bool] to [string] automatically: *)
-
+(* Set Typeclasses Debug. *)
 Definition e3 : string := mymap false.
 Compute e3.
 
@@ -1443,9 +1569,9 @@ Compute e3.
     a state of great peril: If we happen to ask for an instance that
     doesn't exist, the search procedure will diverge. *)
 
-(* 
-Definition e4 : list nat := mymap false.
-*)
+(* Set Typeclasses Debug. *)
+
+(* Definition e4 : list nat := mymap false. *)
 
 (** **** Exercise: 1 star (nonterm)  *)
 (** Why, exactly, did the search diverge?  Enable typeclass debugging,
