@@ -4,6 +4,8 @@
 *.aux
 *.tgz
 cpdt/src/*.html
+cpdt/.coqdeps.d
+cpdt/Makefile.coq.conf
 lf/*.html
 plf/*html
 vfa/*.html
